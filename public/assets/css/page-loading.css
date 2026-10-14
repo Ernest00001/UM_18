@@ -1,0 +1,12 @@
+.brand-loading{min-height:100vh;min-height:100dvh;background:#800000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:32px;text-align:center;box-sizing:border-box}
+.brand-loading-emblem{width:124px;height:124px;position:relative;display:grid;place-items:center;flex:none}
+.brand-loading-emblem::before{content:'';position:absolute;inset:0;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;border-right-color:#fff;border-radius:50%;animation:um18-loading 1.1s linear infinite}
+.brand-loading-number{font-family:Georgia,'Times New Roman',serif;font-weight:700;font-size:64px;line-height:1;color:#fff}
+.brand-loading-message{font-size:15px;line-height:1.6;max-width:34rem;margin:0;color:#fff}
+.brand-loading .btn{color:#800000;background:#fff;border-color:#fff}
+.brand-loading a{color:#fff}
+.brand-loading-actions{display:flex;align-items:center;justify-content:center;gap:24px;flex-wrap:wrap}
+.brand-loading-actions[hidden]{display:none}
+.brand-loading.failed .brand-loading-emblem::before{animation:none;border-color:rgba(255,255,255,.6)}
+@keyframes um18-loading{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.brand-loading-emblem::before{animation:none}}

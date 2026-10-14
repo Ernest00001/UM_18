@@ -1,0 +1,3 @@
+import {handler,method,environment,json,HttpError} from '../server/http.js';
+import {privileged} from '../server/supabase.js';
+export default handler(async(req,res)=>{method(req,'GET');const e=environment();const {data,error}=await privileged(e).from('branding').select('organisation_name,short_name,slogan,school_name,contact_email,contact_phone,cohort,logo_path,version').single();if(error)throw new HttpError(503,'Branding could not be loaded.');const {logo_path,version,...safe}=data;safe.logo_url=logo_path?e.url+'/storage/v1/object/public/branding/'+logo_path.split('/').map(encodeURIComponent).join('/')+'?v='+version:null;json(res,200,safe);});

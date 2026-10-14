@@ -1,0 +1,80 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "framework": null,
+  "functions": {
+    "api/*.js": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://*.supabase.co; connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com; frame-src 'self' https://challenges.cloudflare.com https://*.supabase.co; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/admin/members/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/monthly/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/special/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/payments/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/expenses/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/events/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/welfare/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/documents/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/registrations/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/accounts/:id",
+      "destination": "/admin/index.html"
+    },
+    {
+      "source": "/admin/office-reports/:id",
+      "destination": "/admin/index.html"
+    }
+  ]
+}

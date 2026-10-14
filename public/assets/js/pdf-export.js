@@ -1,0 +1,32 @@
+// Branded, measured-width PDF layouts. Fonts are local, licensed, and embedded as subsets.
+// Extended scripts load only when used. Unsupported glyphs produce an explicit error.
+import {BRAND} from './domain.js';
+const fontCache=new Map();
+async function fontFile(name,loader){if(loader)return loader(name);if(!fontCache.has(name))fontCache.set(name,fetch('/assets/fonts/'+name).then(async r=>{if(!r.ok)throw new Error('Report fonts could not be loaded. Retry the export.');return new Uint8Array(await r.arrayBuffer());}).catch(e=>{fontCache.delete(name);throw e;}));return fontCache.get(name);}
+export async function makePdf(title,lines=[],options={}){
+ const engine=options.engine||await import('./vendor/pdf-engine.js');const {PDFDocument,rgb,fontkit}=engine;
+ const doc=await PDFDocument.create();doc.registerFontkit(fontkit);doc.setTitle(title);doc.setAuthor(options.brand?.organisation_name||BRAND.organisation_name);doc.setSubject(options.scope||'Association records summary');
+ const allText=[options.brand?.organisation_name||BRAND.organisation_name,options.brand?.slogan||BRAND.slogan,title,...lines,...(options.headers||[]),...(options.rows||[]).flat()].map(v=>String(v??'')).join(' ');
+ const regular=await doc.embedFont(await fontFile('NotoSans-Regular.ttf',options.fontLoader),{subset:true});
+ const bold=await doc.embedFont(await fontFile('NotoSans-Bold.ttf',options.fontLoader),{subset:true});const fallback=[];
+ if(/[\p{Script=Han}\p{Script=Hangul}\p{Script=Hiragana}\p{Script=Katakana}\u3000-\u303f\uff00-\uffef]/u.test(allText))fallback.push(await doc.embedFont(await fontFile('NotoSansCJKsc-Regular.ttf',options.fontLoader),{subset:true}));
+ if(/\p{Script=Arabic}/u.test(allText))fallback.push(await doc.embedFont(await fontFile('NotoSansArabic-Regular.ttf',options.fontLoader),{subset:true}));
+ const sets=new Map([regular,bold,...fallback].map(f=>[f,new Set(f.getCharacterSet())]));
+ const runs=(value,strong=false)=>{const source=String(value??'');if(/\p{Script=Arabic}/u.test(source)){const arabic=fallback.find(f=>[...source].every(c=>sets.get(f).has(c.codePointAt(0))));if(arabic)return [{font:arabic,text:source}];}const out=[];for(const char of String(value??'').replace(/[\u0000-\u001f\u007f]/g,' ')){const primary=strong?bold:regular;const font=sets.get(primary).has(char.codePointAt(0))?primary:fallback.find(f=>sets.get(f).has(char.codePointAt(0)));if(!font)throw new Error(`The PDF font does not support U+${char.codePointAt(0).toString(16).toUpperCase()}. The original spelling is preserved in CSV; use CSV or print this report.`);const last=out.at(-1);if(last?.font===font)last.text+=char;else out.push({font,text:char});}return out;};
+ const width=(text,size,strong=false)=>runs(text,strong).reduce((n,r)=>n+r.font.widthOfTextAtSize(r.text,size),0);
+ const wrap=(value,max,size,strong=false)=>{const text=String(value??'');if(!text)return [''];const out=[];let line='';for(const token of text.split(/(\s+)/)){if(width(line+token,size,strong)<=max){line+=token;continue;}if(line.trim()){out.push(line.trimEnd());line='';}if(width(token,size,strong)<=max){line=token.trimStart();continue;}for(const char of token){if(width(line+char,size,strong)>max&&line){out.push(line);line='';}line+=char;}}if(line.trim()||!out.length)out.push(line.trimEnd());return out;};
+ const headers=options.headers||[],rows=options.rows||[],landscape=headers.length>7,W=landscape?842:595,H=landscape?595:842,M=42,bodyWidth=W-2*M,maroon=rgb(.5,0,0),ink=rgb(.15,.16,.18),muted=rgb(.4,.42,.46),tint=rgb(.98,.95,.95),border=rgb(.88,.87,.87);let page,y;
+ const draw=(text,x,top,size=9,strong=false,color=ink)=>{for(const r of runs(text,strong)){page.drawText(r.text,{x,y:top,font:r.font,size,color});x+=r.font.widthOfTextAtSize(r.text,size);}};
+ const addPage=()=>{page=doc.addPage([W,H]);draw(options.brand?.organisation_name||BRAND.organisation_name,M,H-43,10,true,maroon);draw('SET 2018 · '+(options.brand?.slogan||BRAND.slogan),M,H-60,8,false,muted);page.drawLine({start:{x:M,y:H-72},end:{x:W-M,y:H-72},thickness:1,color:maroon});y=H-98;};
+ const need=height=>{if(y-height<48)addPage();};addPage();for(const line of wrap(title,bodyWidth,19,true)){draw(line,M,y,19,true,maroon);y-=26;}y-=10;
+ for(const raw of lines){const text=String(raw??'');if(!text){y-=8;continue;}const strong=/^[A-Z][A-Z /&-]{2,}$/.test(text);const size=strong?11:9;const parts=wrap(text,bodyWidth,size,strong);need(parts.length*14+10);if(strong){y-=7;for(const part of parts){need(14);draw(part,M,y,size,true,maroon);y-=14;}y-=5;}else for(const part of parts){need(14);draw(part,M,y,size,false,muted);y-=14;}}
+ if(headers.length){
+ y-=14;const fontSize=landscape?8:8.5;
+ const weights=headers.map((h,i)=>Math.min(3.5,Math.max(1,String(h).length/12,...rows.map(r=>Math.min(3.5,String(r[i]??'').length/18)))));const total=weights.reduce((s,n)=>s+n,0),widths=weights.map(n=>bodyWidth*n/total);
+ const header=()=>{const texts=headers.map((h,i)=>wrap(h,widths[i]-12,fontSize,true)),height=Math.max(...texts.map(x=>x.length))*12+14;need(height+25);page.drawRectangle({x:M,y:y-height,width:bodyWidth,height,color:tint});let x=M;for(let i=0;i<headers.length;i++){texts[i].forEach((line,j)=>draw(line,x+6,y-14-j*12,fontSize,true,maroon));x+=widths[i];}y-=height;};header();
+ if(!rows.length){need(30);draw('No records in the selected scope.',M,y-20,9,false,muted);y-=35;}
+ for(const row of rows){const texts=headers.map((h,i)=>wrap(typeof row[i]==='number'&&/NGN/i.test(h)?row[i].toFixed(2):row[i]??'',widths[i]-12,fontSize));let offset=0;const lineCount=Math.max(...texts.map(x=>x.length));while(offset<lineCount){if(y<80){addPage();header();}const fitting=Math.max(1,Math.floor((y-49-14)/12)),count=Math.min(lineCount-offset,fitting),height=count*12+14;let x=M;for(let i=0;i<headers.length;i++){texts[i].slice(offset,offset+count).forEach((line,j)=>draw(line,x+6,y-13-j*12,fontSize));x+=widths[i];}page.drawLine({start:{x:M,y:y-height},end:{x:W-M,y:y-height},thickness:.5,color:border});y-=height;offset+=count;if(offset<lineCount){addPage();header();}}}
+ }
+ const pages=doc.getPages(),generated=options.generated||new Date().toISOString();for(let i=0;i<pages.length;i++){page=pages[i];page.drawLine({start:{x:M,y:35},end:{x:W-M,y:35},thickness:.5,color:border});draw('Association summary · Generated '+generated+' (UTC)',M,23,7,false,muted);draw(`Page ${i+1} / ${pages.length}`,W-M-65,23,7,false,muted);}
+ return new Blob([await doc.save()],{type:'application/pdf'});
+}

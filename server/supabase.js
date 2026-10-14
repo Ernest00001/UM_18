@@ -1,0 +1,6 @@
+import {createClient} from '@supabase/supabase-js';
+import {HttpError} from './http.js';
+const options={auth:{autoRefreshToken:false,persistSession:false}};
+export function privileged(e){if(!e.secret)throw new HttpError(503,'The server integration is not configured.');return createClient(e.url,e.secret,options);}
+export async function executive(req,e,permission){const token=String(req.headers.authorization||'').match(/^Bearer (.+)$/)?.[1];if(!token||token.length>8192)throw new HttpError(401,'Sign in is required.');const client=createClient(e.url,e.key,{...options,global:{headers:{Authorization:'Bearer '+token}}});const {data,error}=await client.auth.getUser(token);if(error||!data.user)throw new HttpError(401,'The session could not be verified.');if(permission){const {data:allowed,error:denied}=await client.rpc('has_permission',{p_permission:permission});if(denied||!allowed)throw new HttpError(403,'Your current account or verification level does not permit this action.');}return {client,user:data.user};}
+export async function rpc(client,name,args){const {data,error}=await client.rpc(name,args);if(error)throw new HttpError(error.code==='42501'?403:409,'The operation was not completed. Review the record and try again.');return data;}

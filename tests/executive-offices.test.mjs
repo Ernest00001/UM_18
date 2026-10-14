@@ -1,0 +1,107 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {database,role,action,OWNER,READER,FINANCE} from './database-harness.mjs';
+
+const officeCodes=['president','vice_president','secretary','assistant_secretary','treasurer','assistant_treasurer','pro','financial_secretary','assistant_financial_secretary','community_event_manager','auditor_general'];
+const account=(id,name,extra={})=>({id,display_name:name,active:true,roles:['read_only'],permissions:[],reason:'Reviewed executive office and access assignment',...extra});
+const workspace=async(db,area,target=null)=>(await db.query('select public.workspace_data($1,$2) d',[area,target])).rows[0].d;
+const allowed=async(db,permission)=>(await db.query('select public.has_permission($1) allowed',[permission])).rows[0].allowed;
+
+test('executive offices remain validated metadata with independent contact access',async t=>{
+ const db=await database();t.after(()=>db.close());
+ await t.test('catalog contains exactly the confirmed offices without new access roles',async()=>{
+  assert.deepEqual((await db.query('select code from public.executive_offices order by code')).rows.map(x=>x.code),officeCodes.toSorted());
+  await db.exec('reset role');
+  assert.deepEqual((await db.query('select code from public.roles order by code')).rows.map(x=>x.code),['owner','read_only','secretary','treasurer','welfare']);
+  await role(db,'authenticated',OWNER);
+ });
+ await t.test('office changes preserve command retries, validation, audit and authority',async()=>{
+  const key=crypto.randomUUID(),payload=account(READER,'Test Public Relations Officer',{office_codes:['pro','assistant_secretary']});
+  const first=await action(db,'save_account',payload,key);
+  assert.deepEqual(first.office_codes,payload.office_codes);
+  assert.deepEqual((await action(db,'save_account',payload,key)).office_codes,payload.office_codes);
+  await assert.rejects(action(db,'save_account',{...payload,office_codes:['president']},key),/Retry key reused/);
+  for(const offices of [['chairman'],['national_treasurer'],['pro','pro'],[null],{},null])await assert.rejects(action(db,'save_account',{...payload,office_codes:offices}),/office/i);
+  const audit=(await db.query("select changes from public.audit_events where target_id=$1 and action='executive.offices_changed'",[READER])).rows;
+  assert.equal(audit.length,1);assert.deepEqual(audit[0].changes.before,[]);assert.deepEqual(audit[0].changes.after,payload.office_codes);
+  await role(db,'authenticated',READER);
+  const context=(await db.query('select public.current_context() c')).rows[0].c;
+  assert.deepEqual(context.office_codes,payload.office_codes);
+  assert.equal(await allowed(db,'members.write'),false);assert.equal(await allowed(db,'accounts.write'),false);assert.equal(await allowed(db,'contacts.read'),false);
+  await assert.rejects(action(db,'save_account',payload));
+  await assert.rejects(db.query("update public.executive_accounts set office_codes='{president}' where id=$1",[READER]));
+  await assert.rejects(db.query("insert into public.executive_offices(code,label) values('chairman','Chairman')"));
+  await role(db,'authenticated',OWNER);
+  await action(db,'save_account',account(READER,'Test Public Relations Officer'));
+  assert.deepEqual((await workspace(db,'accounts')).accounts.find(x=>x.id===READER).office_codes,payload.office_codes);
+  assert.deepEqual((await workspace(db,'overview')).officers.find(x=>x.id===READER).office_codes,payload.office_codes);
+  await action(db,'save_account',account(READER,'Test Auditor General',{office_codes:['auditor_general']}));
+  assert.deepEqual((await action(db,'save_account',payload,key)).office_codes,payload.office_codes);
+  assert.deepEqual((await workspace(db,'accounts')).accounts.find(x=>x.id===READER).office_codes,['auditor_general']);
+  await action(db,'save_account',account(READER,'Test Auditor General',{office_codes:[]}));
+  assert.deepEqual((await workspace(db,'accounts')).accounts.find(x=>x.id===READER).office_codes,[]);
+ });
+ await t.test('contact history can be granted without confidential membership administration',async()=>{
+  const member=await action(db,'save_member',{full_name:'Fictional Contact Member',phone_original:'08012345678',city:'Uyo',country:'Nigeria',skills:[],details:{address:'PRIVATE-ADDRESS',emergency_name:'PRIVATE-EMERGENCY'},internal_remarks:'PRIVATE-REMARK',reason:'Approved fictional profile'});
+  await action(db,'save_contact',{member_id:member.id,contact_date:'2026-10-14',channel:'phone',notes:'Reviewed fictional outreach',outcome:'Reached member',follow_up_date:'2026-10-20'});
+  await action(db,'save_account',account(READER,'Test Public Relations Officer',{office_codes:['pro'],permissions:['contacts.read']}));
+  await role(db,'authenticated',READER);
+  assert.equal(await allowed(db,'contacts.read'),true);assert.equal(await allowed(db,'members.write'),false);assert.equal(await allowed(db,'contacts.write'),false);
+  assert.equal((await db.query('select * from public.contact_history')).rows.length,1);
+  for(const area of ['overview','contacts','reports','members'])assert.equal((await workspace(db,area,member.id)).contacts.length,1);
+  const data=await workspace(db,'members',member.id);
+  assert.ok(!JSON.stringify(data.members).includes('PRIVATE-'));assert.equal((await db.query('select * from public.members')).rows.length,0);
+  await assert.rejects(action(db,'save_contact',{member_id:member.id,contact_date:'2026-10-14',channel:'phone',notes:'Read-only attempt'}));
+  await role(db,'authenticated',OWNER);
+  await action(db,'save_account',account(READER,'Test Public Relations Officer',{permissions:['contacts.write']}));
+  await role(db,'authenticated',READER);assert.equal((await workspace(db,'contacts')).contacts.length,1);
+  await role(db,'authenticated',OWNER);
+  await action(db,'save_account',account(READER,'Test Membership Administrator',{permissions:['members.write']}));
+  await role(db,'authenticated',READER);
+  assert.equal((await db.query('select * from public.contact_history')).rows.length,0);
+  for(const area of ['overview','contacts','reports','members'])assert.deepEqual((await workspace(db,area,member.id)).contacts,[]);
+  assert.deepEqual((await db.query('select public.workspace_snapshot() d')).rows[0].d.contacts,[]);
+  await role(db,'authenticated',OWNER);
+  await action(db,'save_account',account(FINANCE,'Test Secretary',{roles:['secretary']}));
+  await role(db,'authenticated',FINANCE);assert.equal(await allowed(db,'contacts.read'),true);
+  await role(db,'authenticated',OWNER);
+ });
+ await t.test('denials and live revocation remain effective for contacts and repeated office commands',async()=>{
+  await action(db,'save_account',account(READER,'Test Public Relations Officer',{permissions:['contacts.read'],denied_permissions:['contacts.read']}));
+  await role(db,'authenticated',READER);assert.deepEqual((await workspace(db,'contacts')).contacts,[]);
+  await role(db,'authenticated',OWNER);
+  await action(db,'save_account',account(FINANCE,'Test Access Administrator',{permissions:['accounts.write']}));
+  await role(db,'authenticated',FINANCE);
+  const key=crypto.randomUUID(),payload=account(READER,'Test Public Relations Officer',{office_codes:['pro']});
+  await action(db,'save_account',payload,key);
+  await role(db,'authenticated',OWNER);await action(db,'save_account',account(FINANCE,'Test Access Administrator'));
+  await role(db,'authenticated',FINANCE);await assert.rejects(action(db,'save_account',payload,key),/Access denied/);
+  await role(db,'authenticated',OWNER);
+  await db.exec('reset role');await assert.rejects(db.query("update public.executive_accounts set office_codes='{chairman}' where id=$1",[READER]),/office/i);
+  await role(db,'authenticated',OWNER);
+ });
+ await t.test('office-aware provisioning is service-only, transactional and retry-safe',async()=>{
+  const id=crypto.randomUUID(),key=crypto.randomUUID(),payload={op:'invite',email:'office@example.invalid',display_name:'Invited President',roles:['read_only'],office_codes:['president'],reason:'Approved elected office with directory-only access'};
+  await db.exec('reset role');await db.query('insert into auth.users(id,email) values($1,$2)',[id,payload.email]);await role(db,'authenticated',OWNER);
+  const op=(await db.query('select public.begin_invitation($1,$2::jsonb) d',[key,JSON.stringify(payload)])).rows[0].d;
+  await db.query('select public.mark_invitation_identity($1,$2,$3)',[op.id,op.lease_id,id]);
+  const sql='select public.provision_invitation_v2($1,$2,$3,$4,$5,$6,$7::jsonb,$8::jsonb,$9,$10,$11,$12::jsonb,$13::jsonb,$14::jsonb) d';
+  const args=[op.id,op.lease_id,OWNER,id,payload.display_name,payload.email,JSON.stringify(payload.roles),'[]',null,null,payload.reason,'[]','[]',JSON.stringify(payload.office_codes)];
+  await assert.rejects(db.query(sql,args),/permission denied/);
+  await role(db,'service_role',null);await assert.rejects(db.query(sql,[...args.slice(0,-1),'["national_treasurer"]']),/office/i);
+  await db.exec('reset role');assert.equal((await db.query('select count(*) n from public.executive_accounts where id=$1',[id])).rows[0].n,0);assert.equal((await db.query('select state from public.invitation_operations where id=$1',[op.id])).rows[0].state,'pending');await role(db,'service_role',null);
+  assert.deepEqual((await db.query(sql,args)).rows[0].d.office_codes,payload.office_codes);
+  await role(db,'authenticated',OWNER);
+  await action(db,'save_account',account(id,'Invited Vice President',{office_codes:['vice_president']}));
+  await role(db,'service_role',null);assert.equal((await db.query(sql,args)).rows[0].d.id,id);
+  await role(db,'authenticated',id);
+  assert.deepEqual((await db.query('select public.current_context() c')).rows[0].c.office_codes,['vice_president']);assert.equal(await allowed(db,'accounts.write'),false);assert.equal(await allowed(db,'finance.write'),false);
+  await role(db,'authenticated',OWNER);
+  const retry=(await db.query('select public.begin_invitation($1,$2::jsonb) d',[key,JSON.stringify(payload)])).rows[0].d;assert.equal(retry.completed,true);assert.equal(retry.user_id,id);
+  const audit=(await db.query("select changes from public.audit_events where target_id=$1 and action='executive.offices_assigned'",[id])).rows;assert.equal(audit.length,1);assert.deepEqual(audit[0].changes.before,[]);assert.deepEqual(audit[0].changes.after,['president']);
+ });
+ await t.test('anonymous and AAL1 sessions gain no office or contact authority',async()=>{
+  await role(db,'authenticated',READER,'aal1');assert.equal(await allowed(db,'contacts.read'),false);await assert.rejects(db.query("select public.workspace_data('contacts',null)"));
+  await role(db,'anon',null);await assert.rejects(db.query('select * from public.executive_offices'));await assert.rejects(db.query('select * from public.contact_history'));await assert.rejects(db.query('select public.current_context()'));
+ });
+});
