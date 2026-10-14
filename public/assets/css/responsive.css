@@ -1,4 +1,19 @@
 /* Shared layouts for public pages, executive workspaces and record dialogs. */
+.steps.four > div {
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.steps.four > div:nth-child(odd) {
+  background: var(--maroon);
+  border-color: var(--maroon);
+  color: white;
+}
+.steps.four > div:nth-child(odd) h3,
+.steps.four > div:nth-child(odd) .step-number { color: white; }
+.steps.four > div:nth-child(odd) .step-number { border-color: #ffffff4d; }
+.steps.four > div:nth-child(odd) p { color: #fff; opacity: .9; }
+.steps.four > div:nth-child(even) { background: #f6eeeb; border-color: #f6eeeb; }
 @media screen {
   .grid > *, .dashboard-grid > *, .summary-grid > *, .reconciliation > *,
   .accountability-panels > *, .task-grid > *, .workspace, .topbar-search,

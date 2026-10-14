@@ -4,7 +4,7 @@
 
 The current work is UI/UX review before live database setup or deployment. Open the public pages at `http://127.0.0.1:3180` and the executive screens directly at `/admin/overview/`. Public navigation has no executive entry link. The preview uses a generic **Workspace preview** identity and begins without sample operational records. Records and uploaded files entered for interface checks stay in local server memory until the preview server restarts. Use nonpersonal test input; no email invitation or live Supabase change occurs here.
 
-The operational procedures below describe the intended configured Supabase system. Event-media script 014, eligible executive-invitation script 015 shared-accountability script 016 and production-integrity script 017 are prepared for later backend setup, not applied to a live project.
+The operational procedures below describe the intended configured Supabase system. Event-media script 014, eligible executive-invitation script 015 shared-accountability script 016 and production-integrity script 017 and leadership-review script 018 are prepared for later backend setup, not applied to a live project.
 
 ## Member registration
 
@@ -22,12 +22,12 @@ The executive accepts their Supabase email invitation, sets a password, enrolls 
 
 All executives use the same workspace. Navigation and actions reflect their approved access. The association office titles are President, Vice President, Secretary, Assistant Secretary, Treasurer, Assistant Treasurer, PRO, Financial Secretary, Assistant Financial Secretary, Community / Event Manager, and Auditor General. Community / Event Manager is one combined office. An executive may hold more than one office where approved.
 
-Office titles describe association responsibilities and are separate from access roles. Selecting a title alone does not give access. In **Executive accounts**, choose the office, optionally use **Apply suggested access**, review the proposed roles and permissions, and save the approved duties. President and Vice President do not automatically receive owner access; owners are appointed separately for account/settings administration. Existing account access remains as assigned until it is deliberately changed.
+Office titles describe association responsibilities and are separate from access roles. Selecting a title alone does not give access. In **Executive accounts**, choose the office, optionally use **Apply suggested access**, review the proposed roles and permissions, and save the approved duties. The first approved President account is explicitly bootstrapped as system administrator. Selecting President or Vice President later does not automatically grant owner access. Member-request review also requires the President or Vice President office and current review permission; other offices cannot review requests. Existing account access remains as assigned until it is deliberately changed.
 
 | Office | Suggested workspace responsibilities |
 |---|---|
-| President; Vice President | Read permitted association information, finance and audit records; owner administration requires a separate explicit assignment |
-| Secretary; Assistant Secretary | Review registrations, manage member profiles, and maintain contact follow-up |
+| President; Vice President | Review member requests and read permitted association, finance and audit information; the first President is explicitly bootstrapped as system administrator |
+| Secretary; Assistant Secretary | Maintain approved member profiles, contact follow-up and events; member-request review belongs to leadership |
 | Treasurer; Assistant Treasurer | Manage collections, verified receipts, allocations, expenses and financial statements |
 | Financial Secretary; Assistant Financial Secretary | Maintain contribution and receipt records through approved finance access |
 | PRO | Read the permitted member directory/contact history, record outreach/follow-up, and manage events/documents without editing member profiles |

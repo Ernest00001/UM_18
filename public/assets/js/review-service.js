@@ -1,22 +1,22 @@
 import {operationKey} from './ui.js';
 import {fixtures} from './fixtures.js';
 import {uid,normalizePhone,normalizedName,validateRegistration,ALL_PERMISSIONS,assertAllocations,netPayment,dayISO} from './domain.js';
-import {ACCESS_ROLE_PERMISSIONS,validOfficeCodes} from './executive-offices.js';
+import {ACCESS_ROLE_PERMISSIONS,validOfficeCodes,canReviewRegistrations} from './executive-offices.js';
 import {requireOfficeReportWrite,mutateOfficeReport,officeReportList,accountabilityOverview,collectionSummaries,monthlySchedule} from './review-accountability.js';
 export class ReviewService {
  constructor(){this.data=fixtures();this.user=null;this.keys=new Map();this.reference=100;this.documents=new Map();this.eventMediaFiles=new Map();this.data.event_media=[];this.data.office_reports=this.data.office_reports||[];this.data.officeReportHistory=this.data.officeReportHistory||[];this.config={mode:'review'};this.writeKeys=new Map();for(const event of this.data.events)Object.assign(event,{status:event.status||'upcoming',is_public:false,public_location:null,public_description:null,closed_at:event.closed_at||null});for(const name of ['memberHistory','allocationHistory','assessmentHistory','metadataHistory','welfareHistory','statusHistory'])this.data[name]=[];}
  async branding(){return this.data.branding;}
  async login(){this.user=this.data.accounts[0];return this.user;}
- async session(){return this.user;}
+ async session(){if(!this.user)return null;const user=this.data.accounts.find(a=>a.id===this.user.id)||this.user;return {...user,permissions:(user.permissions||[]).filter(p=>p!=='registrations.review'||canReviewRegistrations(user))};}
  async logout(){this.user=null;}
- async load(){if(!this.user)throw new Error('Open the fictional review workspace first.');const data=structuredClone(this.data);delete data.office_reports;delete data.officeReportHistory;return data;}
+ async load(){if(!this.user)throw new Error('Open the fictional review workspace first.');const data=structuredClone(this.data);if(!canReviewRegistrations(this.data.accounts.find(a=>a.id===this.user.id)||this.user))data.submissions=[];delete data.office_reports;delete data.officeReportHistory;return data;}
  async accountabilityOverview(options){return accountabilityOverview(this,options);}
  async officeReports(){return officeReportList(this);}
  async collectionSummaries(){return collectionSummaries(this);}
  async monthlySchedule(options){return monthlySchedule(this,options);}
  async register(input,key){const v=validateRegistration(input);if(!v.valid)throw Object.assign(new Error('Check the highlighted fields.'),{fields:v.errors});const hash=JSON.stringify(v.payload);if(this.keys.has(key)){const old=this.keys.get(key);if(old.hash!==hash)throw new Error('Submission retry changed. Ask an executive to review the earlier submission.');return old.result;}const result={reference:`REVIEW-${uid().slice(0,8).toUpperCase()}`};this.data.submissions.push({id:uid(),...result,payload:v.payload,review_status:'pending',created_at:new Date().toISOString(),possible_duplicate_ids:this.data.members.filter(m=>m.phone_normalized===v.payload.phone_normalized||normalizedName(m.full_name)===v.payload.name_normalized).map(m=>m.id)});this.keys.set(key,{hash,result});return result;}
  async act(action,p={},key=operationKey()){
-  if(!this.user)throw new Error('Open the review workspace first.');const reportAction=['save_office_report','publish_office_report','withdraw_office_report'].includes(action);if(reportAction){requireOfficeReportWrite(this,p);key=this.user.id+':'+key;}if(['save_event','close_event','set_event_publication','update_event_media'].includes(action))this.requireEventAccess('events.write');const hash=JSON.stringify([action,p]);if(this.writeKeys.has(key)){const old=this.writeKeys.get(key);if(old.hash!==hash)throw new Error('Retry key reused with different contents.');return structuredClone(old.result);}
+  if(!this.user)throw new Error('Open the review workspace first.');const reportAction=['save_office_report','publish_office_report','withdraw_office_report'].includes(action),registrationAction=['approve_submission','reject_submission'].includes(action);if(registrationAction&&!canReviewRegistrations(this.data.accounts.find(a=>a.id===this.user.id)||this.user))throw new Error('Only the President and Vice President with current review permission can review member requests.');if(reportAction){requireOfficeReportWrite(this,p);}if(reportAction||registrationAction)key=this.user.id+':'+key;if(['save_event','close_event','set_event_publication','update_event_media'].includes(action))this.requireEventAccess('events.write');const hash=JSON.stringify([action,p]);if(this.writeKeys.has(key)){const old=this.writeKeys.get(key);if(old.hash!==hash)throw new Error('Retry key reused with different contents.');return structuredClone(old.result);}
   const snapshot=structuredClone(this.data);let result;
   try{const d=this.data;const priorPayment=d.payments.find(x=>x.id===p.id);if(['allocate_payment','adjust_payment','transition_payment','correct_payment'].includes(action)&&p.expected_revision!==undefined&&p.expected_revision!==(priorPayment?.revision||1))throw new Error('Payment changed. Refresh and review the latest record.');
   if(reportAction)result=mutateOfficeReport(this,action,p);

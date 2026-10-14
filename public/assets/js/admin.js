@@ -2,7 +2,7 @@ import {service,branding,reviewMode,uiPreview} from './service.js';
 import {icon} from './icons.js';
 import {bindExecutiveDrawer,bindExecutiveFieldScrolling} from './responsive.js';
 import {esc,initials,dialog,toast,empty} from './ui.js';
-import {officeLabels,officeWorkspaces,ACCESS_ROLES} from './executive-offices.js';
+import {officeLabels,officeWorkspaces,ACCESS_ROLES,canReviewRegistrations} from './executive-offices.js';
 import {renderAuth} from './modules/auth.js';
 import {renderOverview} from './modules/overview.js';
 import {renderOfficeReports} from './modules/office-reports.js';
@@ -24,7 +24,7 @@ const root=document.querySelector('#app');let ctx,navigationRevision=0,drawerCle
 const loadingReady=root.querySelector('[data-app-loader]')?.minimumDisplayReady;
 bindExecutiveFieldScrolling();
 try{
- const svc=await service();const brand=await branding();const user=await svc.session();await loadingReady;ctx={svc,brand,user,data:null,review:reviewMode,preview:uiPreview,can:p=>ctx.user?.permissions?.includes(p),navigate:async(path)=>{history.pushState({},'',path);await route();},refresh:async()=>route(),act:async(action,payload,key)=>{let r;try{r=await svc.act(action,payload,key);}catch(error){if(error.code==='42501'){ctx.data=null;try{ctx.user=await svc.session();await route();}catch{ctx.user=null;await ctx.navigate('/admin/login/');}document.querySelectorAll('dialog').forEach(d=>d.close());}throw error;}toast(uiPreview?'Saved in the temporary UI preview.':reviewMode?'Fictional review record updated.':'Saved successfully.');return r;}};
+ const svc=await service();const brand=await branding();const user=await svc.session();await loadingReady;ctx={svc,brand,user,data:null,review:reviewMode,preview:uiPreview,can:p=>ctx.user?.permissions?.includes(p)&&(p!=='registrations.review'||canReviewRegistrations(ctx.user)),navigate:async(path)=>{history.pushState({},'',path);await route();},refresh:async()=>route(),act:async(action,payload,key)=>{let r;try{r=await svc.act(action,payload,key);}catch(error){if(error.code==='42501'){ctx.data=null;try{ctx.user=await svc.session();await route();}catch{ctx.user=null;await ctx.navigate('/admin/login/');}document.querySelectorAll('dialog').forEach(d=>d.close());}throw error;}toast(uiPreview?'Saved in the temporary UI preview.':reviewMode?'Fictional review record updated.':'Saved successfully.');return r;}};
  window.addEventListener('popstate',()=>route());document.addEventListener('click',e=>{const a=e.target.closest('a[data-route]');if(a&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey){e.preventDefault();ctx.navigate(a.getAttribute('href'));}});await route();if(svc.onSessionChange)svc.onSessionChange(async(event,session)=>{if(event==='SIGNED_OUT'||!session){ctx.user=null;ctx.data=null;await ctx.navigate('/admin/login/');}else if(ctx.user&&!ctx.user.needs_mfa){try{await ctx.refresh();}catch{ctx.user=null;ctx.data=null;await ctx.navigate('/admin/login/');}}});
 }catch(e){await loadingReady;root.innerHTML=`<main id="main" class="public-content"><div class="error-panel"><span class="eyebrow">WORKSPACE UNAVAILABLE</span><h1>Setup is needed.</h1><p>${esc(e.message)}</p><a href="/" class="btn secondary">Return home</a><button class="btn primary" id="retry">Retry</button></div></main>`;document.querySelector('#retry').onclick=()=>location.reload();}
 async function route(){

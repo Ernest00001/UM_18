@@ -11,5 +11,5 @@ test('empty UI preview stays separate from production and starts without operati
  const generated=await readFile('.local/ui-preview/assets/js/fixtures.js','utf8'),source=await readFile('fixtures/empty-preview.js','utf8');
  assert.equal(generated,source.replace("'../public/assets/js/domain.js'","'./domain.js'"));
  const data=emptyPreview();for(const [name,value] of Object.entries(data))if(Array.isArray(value)&&name!=='accounts')assert.deepEqual(value,[],name);
- assert.equal(data.accounts.length,1);assert.equal(data.accounts[0].display_name,'Workspace preview');assert.equal(data.accounts[0].email,null);assert.deepEqual(data.accounts[0].office_codes,[]);
+ assert.equal(data.accounts.length,1);assert.equal(data.accounts[0].display_name,'Workspace preview');assert.equal(data.accounts[0].email,null);assert.deepEqual(data.accounts[0].office_codes,['president']);
 });
