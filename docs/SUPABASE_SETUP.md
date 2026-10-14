@@ -38,7 +38,7 @@ Five regression checks reproduce the hosted grants, confirm the correction denie
 | Unauthorised authenticated access | No executive context, workspace snapshot or write authority; financial history not visible |
 | Server history privileges | Service-role INSERT rights retained on both financial history tables |
 | Definer function hardening | No PUBLIC execution grants; all public SECURITY DEFINER functions have fixed empty search paths |
-| Operational records | No Auth users, executives, members, submissions, payments, expenses, events, reports or stored objects |
+| Operational records at migration installation | No Auth users, executives, members, submissions, payments, expenses, events, reports or stored objects |
 
 The access assertions ran with actual Postgres `anon` and `authenticated` roles inside rolled-back transactions. They did not create accounts or sample production records. They are direct SQL checks, not real signed-in sessions through PostgREST.
 
@@ -56,11 +56,19 @@ The database advisors reported no ERROR findings. Remaining notices were reviewe
 
 The two welfare [Auth initplan warnings](https://supabase.com/docs/guides/database/database-linter?lint=0003_auth_rls_initplan) cleared after the final migration.
 
+## First President account — completed 14 October 2026
+
+The approved forum email's Auth account was created through the signed-in Supabase dashboard. The human user entered and submitted the new password directly; no password was read, saved or included in this repository. The dashboard confirmed the email during this administrative creation. No invitation or confirmation email was sent.
+
+The Supabase plugin then invoked the installed `bootstrap_owner` RPC in a transaction under `service_role`. The account is active, named **UM18 President**, holds the **President** office, and has one permanent, unrevoked **owner** role. Live queries confirmed `accounts.write` and leadership `registrations.review` authority and exactly one `owner.bootstrap` audit entry. Password entry through Auth UI and role assignment through the existing RPC are separate operations; no Auth identity was manually inserted with SQL and no migration was changed.
+
+The account has **zero verified MFA factors**. Live website access is still pending: Auth Site URL remains `http://localhost:3000` with no approved redirects, and the existing localhost interface preview does not perform real Supabase sign-in. Configure the production login, enroll MFA and test a real session before using dashboard administration. Account creation is not evidence that a production login or invitation workflow has passed.
+
 ## Remaining setup before operational use
 
 1. Configure and verify Auth: disable public signup and anonymous sign-ins; enable TOTP; approve the exact site origin and login redirects; configure invitation/recovery email delivery, password policy and session limits.
 2. Configure Vercel server variables securely. No private key was read or placed in this chat, source or manifest. Keep production and staging separated.
-3. Bootstrap the approved President's individual account, accept its email invitation, set a password and verify MFA. The President then invites other executives from the dashboard.
+3. The first President administrator is already created. Configure the working login address, sign in with that account and enroll/verify MFA. The President can then invite other executives from the dashboard. Do not rerun owner bootstrap on this project.
 4. Test real public submissions, leadership review, executive invitations/acceptance, office permissions and revocation through deployed UI and API calls.
 5. Run financial/event/document pilot checks and a coordinated database/object backup and staging restore drill.
 6. Complete actual phone keyboard, Safari and accessibility acceptance.

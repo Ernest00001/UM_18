@@ -2,7 +2,7 @@
 
 ## Current stage: database installed; Auth and hosting pending
 
-All nineteen migrations are installed in the association's Supabase project `hpbzhaleqphfucnautpl`, verified on 14 October 2026 through the Supabase plugin. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the ledger and live checks. Auth/email configuration, the first President account, Vercel deployment, live acceptance and backup/restore remain pending. The local interface preview remains separate from this database.
+All nineteen migrations are installed in the association's Supabase project `hpbzhaleqphfucnautpl`, verified on 14 October 2026 through the Supabase plugin. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the ledger and live checks. The first President administrator is bootstrapped. Auth/email configuration, President MFA, Vercel deployment, live acceptance and backup/restore remain pending. The local interface preview remains separate from this database.
 
 For local interface review, use `npm run build:preview` and `npm run preview`. This builds `.local/ui-preview` and serves `http://127.0.0.1:3180`, with executive screens at `/admin/overview/`. It starts with empty operational records and the generic **Workspace preview** identity. Local server-memory records and uploads last until the preview server restarts; they are not Supabase data. Public navigation contains association content rather than an executive entry link. `npm run build` remains the production default for `dist`, excluding preview/review services and fixture records.
 
@@ -59,6 +59,8 @@ Public registration fails closed without required production bot/rate-limit conf
 Static JS does not automatically inherit Vercel variables. `runtime-mode.js` is only a build-selected mode. In production, **GET `/api/config`** delivers Supabase URL, publishable key, permitted bot site key and timezone with no-store caching. **GET `/api/branding`** returns only approved public identity/contact values and logo URL. Neither endpoint exposes all environment variables, private settings, account IDs or financial/member/case records. Config failure blocks operations; it never enables fictional login or simulated writes.
 
 ## First owner and later invitations
+
+The current association project already has its first **UM18 President** administrator. Do not repeat its bootstrap. The steps below apply to a fresh project; this project's next steps are production sign-in configuration and President MFA enrollment.
 
 On a trusted machine, securely load server variables and run:
 

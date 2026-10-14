@@ -4,7 +4,7 @@
 
 The live database migrations are installed; Auth, email and Vercel setup remain pending. The separate local interface preview stays available at `http://127.0.0.1:3180`, with executive screens directly at `/admin/overview/`. Public navigation has no executive entry link. The preview uses a generic **Workspace preview** identity and begins without sample operational records. Records and uploaded files entered for interface checks stay in local server memory until the preview server restarts. Use nonpersonal test input; this preview sends no email and does not connect to Supabase.
 
-The operational procedures below describe the configured Supabase system after the remaining Auth and hosting setup. All nineteen migrations, including event media, eligible executive invitations, accountability, integrity, leadership review and financial-history access, are installed. No President or other executive account has been created. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for live verification and remaining acceptance checks.
+The operational procedures below describe the configured Supabase system after the remaining Auth and hosting setup. All nineteen migrations, including event media, eligible executive invitations, accountability, integrity, leadership review and financial-history access, are installed. The first President administrator is created. MFA, deployment and subsequent executive invitations remain pending. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for live verification and remaining acceptance checks.
 
 ## Member registration
 
