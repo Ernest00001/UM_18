@@ -1,14 +1,14 @@
 # Configure Supabase and deploy to Vercel
 
-## Current stage: database installed; Auth and hosting pending
+## Current stage: public website deployed; executive setup pending
 
-All nineteen migrations are installed in the association's Supabase project `hpbzhaleqphfucnautpl`, verified on 14 October 2026 through the Supabase plugin. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the ledger and live checks. The first President administrator is bootstrapped. Auth/email configuration, President MFA, Vercel deployment, live acceptance and backup/restore remain pending. The local interface preview remains separate from this database.
+All nineteen migrations are installed in the association's Supabase project `hpbzhaleqphfucnautpl`, verified on 14 October 2026 through the Supabase plugin. See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for the ledger and live checks. The public website is deployed at [theunmatched.vercel.app](https://theunmatched.vercel.app), and the first President administrator is bootstrapped. Auth/email configuration, President MFA, live workflow acceptance and backup/restore remain pending. The local interface preview remains separate from this database.
 
 For local interface review, use `npm run build:preview` and `npm run preview`. This builds `.local/ui-preview` and serves `http://127.0.0.1:3180`, with executive screens at `/admin/overview/`. It starts with empty operational records and the generic **Workspace preview** identity. Local server-memory records and uploads last until the preview server restarts; they are not Supabase data. Public navigation contains association content rather than an executive entry link. `npm run build` remains the production default for `dist`, excluding preview/review services and fixture records.
 
 ## Association-owned projects
 
-Use association-controlled email, billing, domain/DNS and recovery contacts for Supabase, Vercel, source hosting, SMTP, Turnstile and backup storage. Maintain named primary/secondary infrastructure custodians with MFA. Vercel is the production target for the Node server endpoints after interface review and backend setup.
+Use association-controlled email, billing, domain/DNS and recovery contacts for Supabase, Vercel, source hosting, SMTP and backup storage. Maintain named primary/secondary infrastructure custodians with MFA. Vercel hosts the public website and Node server endpoints.
 
 Use a dedicated Supabase project: the initial migration deliberately replaces public-schema grants. Do not apply it to a shared application database. Keep staging and production projects separate.
 
@@ -50,13 +50,10 @@ Configure Vercel Production variables separately from Preview. Preview must use 
 | `SUPABASE_SECRET_KEY` | Server-only privileged key |
 | `APP_ORIGIN` | Exact canonical origin, without trailing slash |
 | `RATE_LIMIT_SALT` | Server-only random value, at least 32 characters |
-| `TURNSTILE_SITE_KEY` | Public bot widget identifier |
-| `TURNSTILE_SECRET_KEY` | Server-only bot verification secret |
-| `ALLOW_LOCAL_NO_BOT=false` | Keep false on Vercel; exception is only for deliberate localhost testing |
 
-Public registration fails closed without required production bot/rate-limit configuration. The server validates hostname, a honeypot, strict fields and bounded bodies. Distributed rate buckets store HMAC-hashed request IPs in PostgreSQL, not process memory.
+Members submit public registration without signing in or completing CAPTCHA. Requests remain pending until the President or Vice President reviews them; submission does not create a member or Auth account automatically. The server still requires valid production configuration and rate-limit salt, checks the exact request origin, validates strict fields and bounded bodies, rejects the hidden spam trap, and preserves retry keys. Distributed rate buckets store HMAC-hashed request IPs in PostgreSQL, not process memory. Old Turnstile variables are unused and may be removed from Vercel.
 
-Static JS does not automatically inherit Vercel variables. `runtime-mode.js` is only a build-selected mode. In production, **GET `/api/config`** delivers Supabase URL, publishable key, permitted bot site key and timezone with no-store caching. **GET `/api/branding`** returns only approved public identity/contact values and logo URL. Neither endpoint exposes all environment variables, private settings, account IDs or financial/member/case records. Config failure blocks operations; it never enables fictional login or simulated writes.
+Static JS does not automatically inherit Vercel variables. `runtime-mode.js` is only a build-selected mode. In production, **GET `/api/config`** delivers Supabase URL, publishable key and timezone with no-store caching. **GET `/api/branding`** returns only approved public identity/contact values and logo URL. Neither endpoint exposes all environment variables, private settings, account IDs or financial/member/case records. Config failure blocks operations; it never enables fictional login or simulated writes.
 
 ## First owner and later invitations
 
@@ -120,6 +117,5 @@ For the actual Vercel deployment, use **npm run build** and the complete source 
 - [Sessions](https://supabase.com/docs/guides/auth/sessions), [invitations](https://supabase.com/docs/reference/javascript/auth-admin-inviteuserbyemail), [MFA](https://supabase.com/docs/guides/auth/auth-mfa)
 - [Storage](https://supabase.com/docs/guides/storage/buckets/fundamentals), [backup scope](https://supabase.com/docs/guides/platform/backups)
 - [Vercel builds](https://vercel.com/docs/builds), [Node Functions](https://vercel.com/docs/functions/runtimes/node-js), [Node versions](https://vercel.com/docs/functions/runtimes/node-js/node-js-versions)
-- [Turnstile verification](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/)
 
-These provider details were checked on 13–14 October 2026. Actual project integration, email delivery and deployment behavior still require the checks above.
+These provider details were checked on 13–14 October 2026. Public Vercel routing and runtime configuration have been checked on the canonical website; email delivery and the complete live workflows still require the pilot above.
