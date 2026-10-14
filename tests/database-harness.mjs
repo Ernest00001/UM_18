@@ -1,6 +1,6 @@
 import {PGlite} from '@electric-sql/pglite';import {readFile,readdir} from 'node:fs/promises';
 export const OWNER='10000000-0000-4000-8000-000000000001',READER='10000000-0000-4000-8000-000000000002',FINANCE='10000000-0000-4000-8000-000000000003',WELFARE='10000000-0000-4000-8000-000000000004';
-export async function database({migrationsLimit}={}){
+export async function database({migrationsLimit,hostedTableGrants=false}={}){
  const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema storage;
  create table auth.users(id uuid primary key,email text);
  create table auth.sessions(id uuid primary key,user_id uuid references auth.users);
@@ -14,6 +14,7 @@ export async function database({migrationsLimit}={}){
  grant select on storage.objects to authenticated;
  grant all on storage.buckets,storage.objects,auth.users to service_role;
  `);
+ if(hostedTableGrants)await db.exec('alter default privileges in schema public grant all on tables to anon,authenticated');
  const migrations=(await readdir('supabase/migrations')).sort();
  for(const name of migrationsLimit===undefined?migrations:migrations.slice(0,migrationsLimit))await db.exec(await readFile('supabase/migrations/'+name,'utf8'));
  await db.query('insert into auth.users(id,email) values($1,$2),($3,$4),($5,$6),($7,$8)',[OWNER,'owner@example.invalid',READER,'reader@example.invalid',FINANCE,'finance@example.invalid',WELFARE,'welfare@example.invalid']);

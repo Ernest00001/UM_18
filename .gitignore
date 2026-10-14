@@ -5,6 +5,7 @@ dist/
 !.env.example
 .vercel/
 .local/
+supabase/.temp/
 *.zip
 *.tgz
 coverage/

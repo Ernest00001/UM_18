@@ -1,0 +1,120 @@
+{
+  "projectRef": "hpbzhaleqphfucnautpl",
+  "verifiedDate": "2026-10-14",
+  "applied": [
+    {
+      "file": "202610130001_core.sql",
+      "version": "202610130001",
+      "name": "core",
+      "sha256": "f294c24a5d644c5c34f58998124c4d1f7a51d5cc9014fb8d1497b08a303750f0"
+    },
+    {
+      "file": "202610130002_operations.sql",
+      "version": "202610130002",
+      "name": "operations",
+      "sha256": "30292728c5f4139ea721589b9e04b54da2d05c2f4da65c467621c798d3bd5ade"
+    },
+    {
+      "file": "202610130003_public_and_storage.sql",
+      "version": "202610130003",
+      "name": "public_and_storage",
+      "sha256": "c1e87d5247332f6022d93bab6270fcbc462cc1b8b1b3625b796b321022142420"
+    },
+    {
+      "file": "202610140004_workflow_upgrade.sql",
+      "version": "202610140004",
+      "name": "workflow_upgrade",
+      "sha256": "73c6504d2f57e0ab9920bcb72b39d399108f105f89b5c2f658c252f3a1504867"
+    },
+    {
+      "file": "202610140005_documents_and_recovery.sql",
+      "version": "202610140005",
+      "name": "documents_and_recovery",
+      "sha256": "87e41166f71d54732437ba76f8b6266cf511a8c7e86c4234b87e07546b2cc4f8"
+    },
+    {
+      "file": "202610140006_scoped_queries.sql",
+      "version": "202610140006",
+      "name": "scoped_queries",
+      "sha256": "c2676de204d6674b3afe1eddbc6b89f0acaa17b0a5b192b690b98c37298e3390"
+    },
+    {
+      "file": "202610140007_event_documents.sql",
+      "version": "202610140007",
+      "name": "event_documents",
+      "sha256": "b06a7e813f10dbe6a0ca38e9857fde059e991cb9ffbc32483df06b9d24f9d9c7"
+    },
+    {
+      "file": "202610140008_document_targets.sql",
+      "version": "202610140008",
+      "name": "document_targets",
+      "sha256": "a6f5364704787cd12fee2bd35c79710f6ba17a380b62e14b60e4cd29df05b15f"
+    },
+    {
+      "file": "202610140009_invitation_permissions.sql",
+      "version": "202610140009",
+      "name": "invitation_permissions",
+      "sha256": "f1a7d39e340755fb350736f14c65c99e3df0b2652c58836b7a97a62e7ca2a222"
+    },
+    {
+      "file": "202610140010_audit_projection.sql",
+      "version": "202610140010",
+      "name": "audit_projection",
+      "sha256": "f45a2a91fd7c800c4c5eba05e9ecf039b2b13e0622cb0a9ee8f7faae7ad3f857"
+    },
+    {
+      "file": "202610140011_invitation_retries.sql",
+      "version": "202610140011",
+      "name": "invitation_retries",
+      "sha256": "674030016e2b3e34fdc5e8aec84b703c6e36294496509296bc2edf1bb7599ee9"
+    },
+    {
+      "file": "202610140012_payment_lineage.sql",
+      "version": "202610140012",
+      "name": "payment_lineage",
+      "sha256": "90bf326df5c248d45d20d33b1f931f32d71f5e4d71882832b7cc66835a276c15"
+    },
+    {
+      "file": "202610140013_executive_offices.sql",
+      "version": "202610140013",
+      "name": "executive_offices",
+      "sha256": "cac578c576feb178a73cd4e3f155bcc6d3de5376de4b0b654d96035324a89ba7"
+    },
+    {
+      "file": "202610140014_public_events.sql",
+      "version": "202610140014",
+      "name": "public_events",
+      "sha256": "a7f5402fa8733dbfe01d8111e06670a7e0419711a2c0e0b6c69c3c008eed92f7"
+    },
+    {
+      "file": "202610140015_active_executive_invitations.sql",
+      "version": "202610140015",
+      "name": "active_executive_invitations",
+      "sha256": "9900ad965750e6e424f1ff49583c104a05a60383cdbc94f19fdfee88c04adef8"
+    },
+    {
+      "file": "202610140016_executive_accountability.sql",
+      "version": "202610140016",
+      "name": "executive_accountability",
+      "sha256": "33c0c55e54c87169d9fb2824d6f65f9be241b81c544b50b76e15db588faae95b"
+    },
+    {
+      "file": "202610140017_production_integrity.sql",
+      "version": "202610140017",
+      "name": "production_integrity",
+      "sha256": "c44e2184e54200d81c79eab63a192d984533ae57a4caa9c55ce7b9397eac1280"
+    },
+    {
+      "file": "202610140018_leadership_registration_review.sql",
+      "version": "202610140018",
+      "name": "leadership_registration_review",
+      "sha256": "61a40177cb9e0a804fde29f3f410bf781f1c8b97e64e9ab4179c22a8473ebd4b"
+    },
+    {
+      "file": "20261014171907_financial_history_access.sql",
+      "version": "20261014171907",
+      "name": "financial_history_access",
+      "sha256": "b52cac0b059d6c588aa64eb45d3db31ea52c07f03558a9184ecccbb8c418b810"
+    }
+  ]
+}
