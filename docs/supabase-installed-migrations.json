@@ -1,6 +1,6 @@
 {
   "projectRef": "hpbzhaleqphfucnautpl",
-  "verifiedDate": "2026-10-14",
+  "verifiedDate": "2026-10-15",
   "applied": [
     {
       "file": "202610130001_core.sql",
@@ -115,6 +115,12 @@
       "version": "20261014171907",
       "name": "financial_history_access",
       "sha256": "b52cac0b059d6c588aa64eb45d3db31ea52c07f03558a9184ecccbb8c418b810"
+    },
+    {
+      "file": "20261015051235_audit_workspace_repairs.sql",
+      "version": "20261015051235",
+      "name": "audit_workspace_repairs",
+      "sha256": "b12631aa06ca01d8e74a83978a0250c2b6270a461d890cc4864ba6298127aecb"
     }
   ]
 }

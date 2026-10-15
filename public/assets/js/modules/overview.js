@@ -3,6 +3,7 @@ import {money,netPayment,assessmentState,paidFor,collectionTotals,dayISO} from '
 import {esc,date,status,memberCell,table,input,empty} from '../ui.js';
 import {officeReportSummary} from './office-reports.js';
 import {officeLabels,officeWorkspaces} from '../executive-offices.js';
+import {remoteTable} from '../remote-table.js';
 
 function sharedOfficeWorkspace(ctx){
  const workspaces=officeWorkspaces(ctx.user.office_codes);
@@ -62,7 +63,9 @@ export async function renderOverview(ctx){
   const columns=[{key:'description',label:'Expense'},{key:'expense_date',label:'Date',render:expense=>date(expense.expense_date)},{key:'collection_title',label:'Collection'},{key:'responsible_officer_name',label:'Responsible officer',render:expense=>esc(expense.responsible_officer_name||'Not recorded')},{key:'amount_kobo',label:'Recorded amount',render:expense=>money(expense.amount_kobo)},{key:'status',label:'Approval',render:expense=>status(expense.status)}];
   if(ctx.can('finance.read')&&ctx.can('finance.write'))columns.push({key:'action',label:'',sortable:false,render:expense=>`<a class="btn link small" data-route href="/admin/expenses/?id=${esc(expense.id)}">Manage expense</a>`});
   else columns.push({key:'action',label:'',sortable:false,render:()=>''});
-  table(document.querySelector('#accountability-expenses'),{rows:expenses,columns,mobileCards:true,emptyText:'No expense records for these dates.'});
+  const holder=document.querySelector('#accountability-expenses');
+  if(ctx.svc.accountabilityExpenses){const listing=remoteTable(holder,{fetchRows:options=>ctx.svc.accountabilityExpenses({...scope,...options}),columns,mobileCards:true,initialSort:'expense_date',initialDescending:true,searchPlaceholder:'Search shared expenses…',filters:[{key:'status',label:'Approval status',options:['pending','approved','reversed']}]});await listing.ready;if(ctx.isCurrent&&!ctx.isCurrent())return;}
+  else table(holder,{rows:expenses,columns,mobileCards:true,emptyText:'No expense records for these dates.'});
  }
  if(metricsError)document.querySelector('#cash-chart').innerHTML='<p class="scope-help">Receipt figures are unavailable for this range.</p>';
  document.querySelector('#retry-finance-metrics')?.addEventListener('click',()=>renderOverview(ctx));

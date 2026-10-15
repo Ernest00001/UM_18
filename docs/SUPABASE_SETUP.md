@@ -42,7 +42,7 @@ Five regression checks reproduce the hosted grants, confirm the correction denie
 
 The access assertions ran with actual Postgres `anon` and `authenticated` roles inside rolled-back transactions. They did not create accounts or sample production records. They are direct SQL checks, not real signed-in sessions through PostgREST.
 
-The complete local suite passed **315 tests**, with zero failures/skips. JavaScript syntax checks passed for **51 modules**. Production and interface-preview build checks also passed.
+The latest local suite on 15 October passed **328 tests**, with zero failures/skips. JavaScript syntax checks passed for **51 modules**. Production and interface-preview build checks also passed.
 
 ## Advisor results and interpretation
 
@@ -62,11 +62,11 @@ The approved forum email's Auth account was created through the signed-in Supaba
 
 The Supabase plugin then invoked the installed `bootstrap_owner` RPC in a transaction under `service_role`. The account is active, named **UM18 President**, holds the **President** office, and has one permanent, unrevoked **owner** role. Live queries confirmed `accounts.write` and leadership `registrations.review` authority and exactly one `owner.bootstrap` audit entry. Password entry through Auth UI and role assignment through the existing RPC are separate operations; no Auth identity was manually inserted with SQL and no migration was changed.
 
-The account has **zero verified MFA factors**. The production executive login is https://theunmatched.vercel.app/admin/login/. Private-session acceptance is still pending: Auth Site URL remains `http://localhost:3000` with no approved redirects, and the existing localhost interface preview does not perform real Supabase sign-in. Complete Auth URL/email configuration, enroll MFA and test a real session before using dashboard administration. Account creation is not evidence that a production login or invitation workflow has passed.
+The account has **zero verified MFA factors**. The production executive login is https://theunmatched.vercel.app/admin/login/. Private-session acceptance is still pending. Auth Site URL is now `https://theunmatched.vercel.app` with the approved `/admin/login/` callback, public signup is disabled, and the existing localhost interface preview does not perform real Supabase sign-in. Complete Auth URL/email configuration, enroll MFA and test a real session before using dashboard administration. Account creation is not evidence that a production login or invitation workflow has passed.
 
 ## Remaining setup before operational use
 
-1. Configure and verify Auth: disable public signup and anonymous sign-ins; enable TOTP; approve the exact site origin and login redirects; configure invitation/recovery email delivery, password policy and session limits.
+1. Complete Auth acceptance: public signup/anonymous sign-in are disabled and the production origin/login callback are saved. Enroll President TOTP and verify invitation/recovery email delivery, password policy and session limits.
 2. Configure Vercel server variables securely. No private key was read or placed in this chat, source or manifest. Keep production and staging separated.
 3. The first President administrator is already created. Configure the working login address, sign in with that account and enroll/verify MFA. The President can then invite other executives from the dashboard. Do not rerun owner bootstrap on this project.
 4. Test real public submissions, leadership review, executive invitations/acceptance, office permissions and revocation through deployed UI and API calls.

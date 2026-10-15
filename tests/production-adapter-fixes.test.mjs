@@ -1,6 +1,12 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {build} from 'esbuild';import {readFile} from 'node:fs/promises';
 import {setup} from './dom-harness.mjs';import {renderOverview} from '../public/assets/js/modules/overview.js';import {renderAudit} from '../public/assets/js/modules/settings.js';import {renderPayments} from '../public/assets/js/modules/finance.js';
 async function service(){const result=await build({entryPoints:['public/assets/js/production-service.js'],bundle:true,write:false,format:'esm',platform:'node',plugins:[{name:'isolated-client',setup(builder){builder.onResolve({filter:/vendor\/supabase\.js$/},()=>({path:'isolated-client',namespace:'test'}));builder.onLoad({filter:/.*/,namespace:'test'},()=>({contents:'export function createClient(){throw new Error("No live client in tests");}',loader:'js'}));}}]});const {ProductionService}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));return new ProductionService();}
+
+test('shared expense pagination forwards the approved dates, search, status and sorting to its guarded RPC',async()=>{
+ const svc=await service(),calls=[];svc.client={rpc:async(name,args)=>{calls.push({name,args});return {data:{count:51,rows:[]},error:null};}};
+ await svc.accountabilityExpenses({from:'2026-10-01',to:'2026-10-15',query:'hall',status:'approved',offset:40,limit:20,sort:'amount_kobo',descending:false});
+ assert.deepEqual(calls[0],{name:'accountability_expenses',args:{p_from:'2026-10-01',p_to:'2026-10-15',p_query:'hall',p_status:'approved',p_offset:40,p_limit:20,p_sort:'amount_kobo',p_desc:false}});
+});
 test('production loader preserves query, replacement and every rewritten record path, including a captured navigation scope',async()=>{
  const saved=globalThis.location;try{const svc=await service(),calls=[];svc.client={rpc:async(name,args)=>{calls.push({name,args});return {data:{},error:null};}};const id='50000000-0000-4000-8000-000000000001';
   for(const rewrite of JSON.parse(await readFile('vercel.json','utf8')).rewrites){globalThis.location={pathname:rewrite.source.replace(':id',id),search:''};await svc.load();assert.equal(calls.at(-1).args.p_target,id);assert.equal(calls.at(-1).args.p_area,rewrite.source.split('/')[2]);}
