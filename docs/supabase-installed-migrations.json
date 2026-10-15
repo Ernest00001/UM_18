@@ -127,6 +127,12 @@
       "version": "20261015053558",
       "name": "executive_membership_handover",
       "sha256": "873965e1853de60889add999167518c7113e4d16975f6bfaff62abf28ae70696"
+    },
+    {
+      "file": "20261015060613_password_only_executive_login.sql",
+      "version": "20261015060613",
+      "name": "password_only_executive_login",
+      "sha256": "a9b17841f1c5a806f03359527bbfb42f8b4954f690055c7f7471989af9f33ec6"
     }
   ]
 }

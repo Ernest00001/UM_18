@@ -24,12 +24,12 @@ test('confirmed executive membership and controlled handover preserve the comple
   const m=(await root(db,'select * from public.members where id=$1',[a.member_id])).rows[0];assert.equal(m.full_name,'Test Owner');assert.equal(m.phone_original,null);assert.equal(m.city,null);assert.equal(m.country,null);assert.equal(m.profile_incomplete,true);
   assert.equal((await root(db,'select count(*) n from public.members')).rows[0].n,1);
  });
- await t.test('invitation acceptance adds a member but cannot grant workspace access until MFA',async()=>{
+ await t.test('invitation acceptance requires password setup before member enrollment and workspace access',async()=>{
   first=await invite(db,{email:'First@example.invalid'});assert.equal((await account(db,first.id)).member_id,null);
-  await role(db,'authenticated',first.id,'aal1');const context=await complete(db);assert.equal(context.needs_mfa,true);assert.equal(context.invitation_pending,true);assert.deepEqual(context.permissions,[]);
+  await role(db,'authenticated',first.id,'aal1');const context=await complete(db);assert.equal(context.needs_password,true);assert.equal(context.invitation_pending,true);assert.deepEqual(context.permissions,[]);
   await assert.rejects(db.query("select public.workspace_data('members')"),/Access denied/);
-  firstMember=(await account(db,first.id)).member_id;assert.ok(firstMember);
-  await role(db,'authenticated',first.id);assert.equal((await complete(db)).invitation_pending,undefined);assert.equal((await account(db,first.id)).access_pending,false);
+  assert.equal((await account(db,first.id)).member_id,null);
+  await role(db,'authenticated',first.id,'aal1','password');assert.equal((await complete(db)).invitation_pending,undefined);firstMember=(await account(db,first.id)).member_id;assert.ok(firstMember);assert.equal((await account(db,first.id)).access_pending,false);
   await role(db,'authenticated',OWNER);const results=(await db.query("select public.search_members('First') d")).rows[0].d;assert.equal(results.count,1);assert.deepEqual(results.rows[0].executive_offices,['pro']);
   const snapshot=(await db.query("select public.workspace_data('reports') d")).rows[0].d;assert.ok(snapshot.members.some(m=>m.id===firstMember&&m.executive_offices.includes('pro')));
  });
@@ -43,8 +43,8 @@ test('confirmed executive membership and controlled handover preserve the comple
  });
  await t.test('two replacements can be invited but only one can finish the same handover',async()=>{
   next=await invite(db,{email:'next@example.invalid',replacement:first.id});other=await invite(db,{email:'other@example.invalid',replacement:first.id});
-  await role(db,'authenticated',next.id,'aal1');assert.equal((await complete(db)).needs_mfa,true);assert.equal((await account(db,first.id)).active,true);
-  await role(db,'authenticated',next.id);assert.equal((await complete(db)).invitation_pending,undefined);
+  await role(db,'authenticated',next.id,'aal1');assert.equal((await complete(db)).needs_password,true);assert.equal((await account(db,first.id)).active,true);
+  await role(db,'authenticated',next.id,'aal1','password');assert.equal((await complete(db)).invitation_pending,undefined);
   assert.equal((await account(db,first.id)).active,false);assert.equal((await account(db,first.id)).member_id,firstMember);
   await role(db,'authenticated',other.id);const pending=await complete(db);assert.equal(pending.invitation_pending,true);assert.match(pending.invitation_message,/appointment changed/);
   await assert.rejects(db.query("select public.workspace_data('members')"),/Access denied/);

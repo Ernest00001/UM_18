@@ -245,6 +245,11 @@
   .monthly-schedule-heading form { flex-wrap: wrap; }
 }
 
+.password-field { position: relative; margin-bottom: 20px; }
+.auth-box .password-field .field { margin-bottom: 0; }
+.password-field .field input { padding-right: 84px; }
+.password-toggle { position: absolute; right: 5px; bottom: 5px; min-width: 66px; min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: var(--maroon); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.password-toggle:focus-visible { outline: 2px solid var(--maroon); outline-offset: 1px; }
 @media screen and (max-width: 480px) {
   .wizard-body .grid { grid-template-columns: minmax(0, 1fr); }
   .wizard-body .full { grid-column: 1 / -1; }

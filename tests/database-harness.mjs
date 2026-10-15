@@ -22,7 +22,7 @@ export async function database({migrationsLimit,hostedTableGrants=false}={}){
  for(const [id,name,r] of [[READER,'Test Reader','read_only'],[FINANCE,'Test Treasurer','treasurer'],[WELFARE,'Test Welfare','welfare']])await db.query('select public.provision_invited_account($1,$2,$3,$4,$5::jsonb,$6::jsonb,null,null,$7)',[OWNER,id,name,name.toLowerCase().replaceAll(' ','')+'@example.invalid',JSON.stringify([r]),'[]','Test invitation']);
  await role(db,'authenticated',OWNER);return db;
 }
-export async function role(db,name,id,aal='aal2'){await db.exec('reset role');if(id&&name==='authenticated')await db.query('insert into auth.sessions(id,user_id) values($1,$1) on conflict do nothing',[id]);await db.query("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claims',$2,false),set_config('request.jwt.claim.role',$3,false)",[id||'',JSON.stringify({sub:id,aal,role:name,session_id:id,iat:Math.floor(Date.now()/1000)}),name]);await db.exec('set role '+name);}
+export async function role(db,name,id,aal='aal2',method=aal==='aal2'?'password':null){await db.exec('reset role');if(id&&name==='authenticated')await db.query('insert into auth.sessions(id,user_id) values($1,$1) on conflict do nothing',[id]);await db.query("select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claims',$2,false),set_config('request.jwt.claim.role',$3,false)",[id||'',JSON.stringify({sub:id,aal,role:name,session_id:id,iat:Math.floor(Date.now()/1000),amr:method?[{method,timestamp:Math.floor(Date.now()/1000)}]:[]}),name]);await db.exec('set role '+name);}
 const requestKeys=new WeakMap();
 export async function action(db,name,payload,key=crypto.randomUUID()){
  let keys=requestKeys.get(db);if(!keys){keys=new Map();requestKeys.set(db,keys);}

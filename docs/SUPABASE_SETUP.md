@@ -1,6 +1,6 @@
 # Supabase database setup — 14 October 2026
 
-The Supabase plugin installed and verified the UM18 database in the approved association project. The public website is deployed at https://theunmatched.vercel.app. The localhost interface preview remains separate. Executive MFA, Auth/email configuration and live pilot acceptance are pending.
+The Supabase plugin installed and verified the UM18 database in the approved association project. The public website is deployed at https://theunmatched.vercel.app. The localhost interface preview remains separate. Executive sign-in uses email and password without MFA. Invitation-email configuration and live pilot acceptance are pending. See [Password sign-in](PASSWORD_LOGIN.md).
 
 ## Project and migration ledger
 
@@ -8,8 +8,8 @@ The Supabase plugin installed and verified the UM18 database in the approved ass
 - [Supabase project dashboard](https://supabase.com/dashboard/project/hpbzhaleqphfucnautpl).
 - API URL: `https://hpbzhaleqphfucnautpl.supabase.co`.
 - Region: `eu-west-1`; PostgreSQL `17.11.0.003`.
-- Installed: 21 migrations, through `20261015053558_executive_membership_handover.sql`. See [Executive membership and handover](EXECUTIVE_MEMBERSHIP.md).
-- All 21 remote ledger versions and names match the repository files. The plugin generated execution timestamps; after each application, its ledger version was reconciled to the original filename prefix without reapplying the schema.
+- Installed: 22 migrations, through `20261015060613_password_only_executive_login.sql`. See [Executive membership and handover](EXECUTIVE_MEMBERSHIP.md).
+- All 22 remote ledger versions and names match the repository files. The plugin generated execution timestamps; after each application, its ledger version was reconciled to the original filename prefix without reapplying the schema.
 - [Installed migration manifest](supabase-installed-migrations.json) records the filenames, versions and SHA-256 hashes of the submitted UTF-8 SQL text. Preserve line endings when comparing hashes; Git may normalize them on checkout. Never edit an already applied migration; create a new migration for future changes.
 
 An interrupted plugin connection initially prevented confirmation of migration six. After reconnection, the live ledger showed it had completed. Its version was reconciled before continuing with migration seven; it was not applied twice.
@@ -26,7 +26,7 @@ Five regression checks reproduce the hosted grants, confirm the correction denie
 
 | Check | Result |
 |---|---|
-| Migration history | 21 exact filename versions and names |
+| Migration history | 22 exact filename versions and names |
 | Public application tables | 37, all with RLS enabled |
 | Browser direct table writes | No INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES or TRIGGER privileges for anon/authenticated |
 | Anonymous direct SELECT | Branding only |
@@ -42,7 +42,7 @@ Five regression checks reproduce the hosted grants, confirm the correction denie
 
 The access assertions ran with actual Postgres `anon` and `authenticated` roles inside rolled-back transactions. They did not create accounts or sample production records. They are direct SQL checks, not real signed-in sessions through PostgREST.
 
-The latest local suite on 15 October passed **341 tests**, with zero failures/skips. JavaScript syntax checks passed for **52 modules**. Production and interface-preview build checks also passed.
+The latest local suite on 15 October passed **347 tests**, with zero failures/skips. JavaScript syntax checks passed for **52 modules**. Production and interface-preview build checks also passed.
 
 ## Advisor results and interpretation
 
@@ -50,7 +50,7 @@ The database advisors reported no ERROR findings. Remaining notices were reviewe
 
 - Eight [RLS-enabled tables without policies](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy): internal role/grant/denial, command and rate-limit tables deliberately deny client access and are used by guarded database/server operations. Adding permissive policies would weaken this design.
 - One [anonymous SECURITY DEFINER entry point](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable): `public_events(text)` is the deliberate public publicity feed. It validates the requested view and projects eligible event publicity and media identifiers, excluding private notes, attendance, object paths and financial details.
-- Thirty [authenticated SECURITY DEFINER entry points](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable): intentional guarded RPCs and policy helpers. They retain explicit grants, fixed search paths and their existing account/session/MFA/permission checks; projection helpers return only their permitted outputs. Authenticated role alone does not grant executive access.
+- Thirty [authenticated SECURITY DEFINER entry points](https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable): intentional guarded RPCs and policy helpers. They retain explicit grants, fixed search paths and their existing account/session/password/permission checks; projection helpers return only their permitted outputs. Authenticated role alone does not grant executive access.
 - Fifty-one [foreign keys without covering indexes](https://supabase.com/docs/guides/database/database-linter?lint=0001_unindexed_foreign_keys): informational performance candidates, including audit actor and historical links. Add indexes based on pilot queries and measured plans as the dataset grows.
 - Twenty-one [unused indexes](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index): expected on a newly created, empty database; retain the planned query indexes.
 
@@ -62,13 +62,13 @@ The approved forum email's Auth account was created through the signed-in Supaba
 
 The Supabase plugin then invoked the installed `bootstrap_owner` RPC in a transaction under `service_role`. The account is active, named **UM18 President**, holds the **President** office, and has one permanent, unrevoked **owner** role. Live queries confirmed `accounts.write` and leadership `registrations.review` authority and exactly one `owner.bootstrap` audit entry. Password entry through Auth UI and role assignment through the existing RPC are separate operations; no Auth identity was manually inserted with SQL and no migration was changed.
 
-The account has **zero verified MFA factors**. The production executive login is https://theunmatched.vercel.app/admin/login/. Private-session acceptance is still pending. Auth Site URL is now `https://theunmatched.vercel.app` with the approved `/admin/login/` callback, public signup is disabled, and the existing localhost interface preview does not perform real Supabase sign-in. Complete Auth URL/email configuration, enroll MFA and test a real session before using dashboard administration. Account creation is not evidence that a production login or invitation workflow has passed.
+The account has **zero verified MFA factors**. The production executive login is https://theunmatched.vercel.app/admin/login/. Private-session acceptance is still pending. Auth Site URL is now `https://theunmatched.vercel.app` with the approved `/admin/login/` callback, public signup is disabled, and the existing localhost interface preview does not perform real Supabase sign-in. Configure invitation email delivery and test a real password sign-in before using dashboard administration. Account creation is not evidence that a production login or invitation workflow has passed.
 
 ## Remaining setup before operational use
 
 1. Complete Auth acceptance: public signup/anonymous sign-in are disabled and the production origin/login callback are saved. Enroll President TOTP and verify invitation/recovery email delivery, password policy and session limits.
 2. Configure Vercel server variables securely. No private key was read or placed in this chat, source or manifest. Keep production and staging separated.
-3. The first President administrator is already created. Configure the working login address, sign in with that account and enroll/verify MFA. The President can then invite other executives from the dashboard. Do not rerun owner bootstrap on this project.
+3. The first President administrator is already created. Configure the working login address, sign in with that account using email and password. The President can then invite other executives from the dashboard. Do not rerun owner bootstrap on this project.
 4. Test real public submissions, leadership review, executive invitations/acceptance, office permissions and revocation through deployed UI and API calls.
 5. Run financial/event/document pilot checks and a coordinated database/object backup and staging restore drill.
 6. Complete actual phone keyboard, Safari and accessibility acceptance.

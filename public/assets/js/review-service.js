@@ -7,7 +7,7 @@ export class ReviewService {
  constructor(){this.data=fixtures();this.user=null;this.keys=new Map();this.reference=100;this.documents=new Map();this.eventMediaFiles=new Map();this.data.event_media=[];this.data.office_reports=this.data.office_reports||[];this.data.officeReportHistory=this.data.officeReportHistory||[];this.config={mode:'review'};this.writeKeys=new Map();for(const event of this.data.events)Object.assign(event,{status:event.status||'upcoming',is_public:false,public_location:null,public_description:null,closed_at:event.closed_at||null});for(const name of ['memberHistory','allocationHistory','assessmentHistory','metadataHistory','welfareHistory','statusHistory'])this.data[name]=[];}
  async branding(){return this.data.branding;}
  async login(){this.user=this.data.accounts[0];return this.user;}
- async session(){if(!this.user)return null;const user=this.data.accounts.find(a=>a.id===this.user.id)||this.user;return {...user,permissions:(user.permissions||[]).filter(p=>p!=='registrations.review'||canReviewRegistrations(user))};}
+ async session(){if(!this.user)return null;const user=this.data.accounts.find(a=>a.id===this.user.id)||this.user;return {...user,login_method:'password',permissions:(user.permissions||[]).filter(p=>p!=='registrations.review'||canReviewRegistrations(user))};}
  async logout(){this.user=null;}
  async load(){if(!this.user)throw new Error('Open the fictional review workspace first.');const data=structuredClone(this.data);if(!canReviewRegistrations(this.data.accounts.find(a=>a.id===this.user.id)||this.user))data.submissions=[];delete data.office_reports;delete data.officeReportHistory;return data;}
  async accountabilityOverview(options){return accountabilityOverview(this,options);}
