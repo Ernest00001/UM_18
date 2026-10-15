@@ -8,6 +8,25 @@ const event=()=>({id:'30000000-0000-4000-8000-000000000001',title:'Community gat
 const image=(changes={})=>({id:'40000000-0000-4000-8000-000000000001',kind:'poster',caption:'Event announcement',alt_text:'Maroon gathering poster',is_banner:true,show_in_gallery:true,url:'https://media.example/poster.webp',archived_at:null,...changes});
 const submit=async form=>{await form.onsubmit({preventDefault(){},currentTarget:form});assert.equal(form.querySelector('.form-error').textContent,'');};
 
+test('public upcoming banners load only on Events; other public pages keep their own content and gallery feed',async()=>{
+ const priorFetch=globalThis.fetch;
+ try{for(const path of ['/','/register/','/help/','/privacy/','/confirmation/','/events/','/gallery/','/missing/']){
+  const {ctx,cleanup}=setup();try{
+   const requests=[];location.pathname=path;document.body.innerHTML='<div id="public-app"></div>';
+   globalThis.fetch=async input=>{const url=String(input);requests.push(url);return {ok:true,json:async()=>url==='/api/branding'?ctx.brand:url==='/api/config'?{mode:'production'}:{events:[{...event(),status:url.includes('gallery')?'closed':'upcoming',media:[image()]}]}};};
+   await import('../public/assets/js/public.js?event-placement='+encodeURIComponent(path));
+   assert.equal(document.querySelector('#public-events-banner'),null,path);
+   const calls=requests.filter(url=>url.startsWith('/api/events'));
+   if(path==='/events/'){
+    assert.deepEqual(calls,['/api/events?view=upcoming']);assert.equal(document.querySelectorAll('#public-events-list [data-public-event]').length,1);assert.equal(document.querySelectorAll('#public-events-list img').length,1);
+   }else if(path==='/gallery/'){
+    assert.deepEqual(calls,['/api/events?view=gallery']);assert.ok(document.querySelector('[data-gallery-event]'));assert.equal(document.querySelector('[data-public-event]'),null);
+   }else{assert.deepEqual(calls,[],path);assert.equal(document.querySelector('[data-public-event]'),null,path);}
+   if(path==='/'||path==='/register/')assert.ok(document.querySelector('#registration'),'Membership form stays available.');
+  }finally{cleanup();}
+ }}finally{globalThis.fetch=priorFetch;}
+});
+
 test('event image URLs support public API paths and same-origin local previews while rejecting unsafe protocols',()=>{
  const {cleanup}=setup();
  try{

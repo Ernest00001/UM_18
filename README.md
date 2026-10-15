@@ -54,7 +54,7 @@ Overview groups the President/Vice President, Secretary/Assistant Secretary, Tre
 
 An account administrator can open an active, unarchived member profile and choose **Invite to executive workspace**. This prepares the member's name, email and alumni link in Executive accounts; the administrator chooses the approved offices and access. In configured production, Supabase sends an individual executive invitation. After accepting it, the executive sets a password and enters the office workspace permitted by their account. The local preview prepares screens only and sends no email. Alumni registration alone does not create a login or executive access.
 
-Event announcements and the gallery use deliberate public event fields and validated posters/photos. Upcoming public events appear on the homepage; closing an event moves its approved public material to the gallery. Attendance, private notes and association documents stay within their existing permission scopes. Event images use a separate private `event-media` bucket with controlled temporary access.
+Event announcements and the gallery use deliberate public event fields and validated posters/photos. Upcoming public event banners appear only on the public Events page; closing an event moves its approved public material to the gallery. Attendance, private notes and association documents stay within their existing permission scopes. Event images use a separate private `event-media` bucket with controlled temporary access.
 
 ## Verification
 
