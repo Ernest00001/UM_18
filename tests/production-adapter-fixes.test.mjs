@@ -2,6 +2,11 @@ import test from 'node:test';import assert from 'node:assert/strict';import {bui
 import {setup} from './dom-harness.mjs';import {renderOverview} from '../public/assets/js/modules/overview.js';import {renderAudit} from '../public/assets/js/modules/settings.js';import {renderPayments} from '../public/assets/js/modules/finance.js';
 async function service(){const result=await build({entryPoints:['public/assets/js/production-service.js'],bundle:true,write:false,format:'esm',platform:'node',plugins:[{name:'isolated-client',setup(builder){builder.onResolve({filter:/vendor\/supabase\.js$/},()=>({path:'isolated-client',namespace:'test'}));builder.onLoad({filter:/.*/,namespace:'test'},()=>({contents:'export function createClient(){throw new Error("No live client in tests");}',loader:'js'}));}}]});const {ProductionService}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].text).toString('base64'));return new ProductionService();}
 
+test('production session completes only its own confirmed executive membership before opening the workspace',async()=>{
+ const svc=await service(),calls=[];const pending={id:'invited',invitation_pending:true,needs_mfa:true,permissions:[]};svc.client={auth:{getSession:async()=>({data:{session:{user:{id:'invited'}}}})},rpc:async name=>{calls.push(name);return {data:pending};}};assert.deepEqual(await svc.session(),pending);assert.deepEqual(calls,['complete_executive_membership']);
+ svc.client.rpc=async()=>({error:{message:'The invitation requires a new approval from the President'}});await assert.rejects(svc.session(),/new approval/);svc.client.auth.getSession=async()=>({data:{session:null}});assert.equal(await svc.session(),null);
+});
+
 test('shared expense pagination forwards the approved dates, search, status and sorting to its guarded RPC',async()=>{
  const svc=await service(),calls=[];svc.client={rpc:async(name,args)=>{calls.push({name,args});return {data:{count:51,rows:[]},error:null};}};
  await svc.accountabilityExpenses({from:'2026-10-01',to:'2026-10-15',query:'hall',status:'approved',offset:40,limit:20,sort:'amount_kobo',descending:false});

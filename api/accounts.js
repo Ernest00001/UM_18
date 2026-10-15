@@ -19,6 +19,9 @@ export default handler(async(req,res)=>{method(req,'POST');const e=environment()
  if(p.office_codes!==undefined&&!validOfficeCodes(p.office_codes))throw new HttpError(422,'Choose valid executive offices without duplicates.');
  if(p.roles.includes('owner')&&((p.denied_permissions||[]).some(x=>['accounts.write','directory.read'].includes(x))||p.expires_at||p.role_schedule?.some(s=>s.role_code==='owner'&&s.expires_at)))throw new HttpError(422,'Owners must retain permanent account administration and directory access.');
  const key=req.headers['idempotency-key'];if(!uuidValid(key))throw new HttpError(422,'A valid invitation operation key is required.');
+ if(p.replaces_executive_id&&!uuidValid(p.replaces_executive_id))throw new HttpError(422,'Choose a valid executive to replace.');
+ // Membership enrollment and replacement checks are enforced in the database.
+ p.include_membership=true;
  const op=await rpc(client,'begin_invitation',{p_key:key,p_payload:p});if(op.completed){json(res,200,{id:op.user_id,invited:true});return;}
  if(p.member_id)await rpc(client,'executive_invitation_member',{p_member:p.member_id});
  const admin=privileged(e);let id=op.user_id;

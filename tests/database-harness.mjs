@@ -2,7 +2,7 @@ import {PGlite} from '@electric-sql/pglite';import {readFile,readdir} from 'node
 export const OWNER='10000000-0000-4000-8000-000000000001',READER='10000000-0000-4000-8000-000000000002',FINANCE='10000000-0000-4000-8000-000000000003',WELFARE='10000000-0000-4000-8000-000000000004';
 export async function database({migrationsLimit,hostedTableGrants=false}={}){
  const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema auth;create schema storage;
- create table auth.users(id uuid primary key,email text);
+ create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz);
  create table auth.sessions(id uuid primary key,user_id uuid references auth.users);
  create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
  create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),'')::jsonb,'{}')$$;

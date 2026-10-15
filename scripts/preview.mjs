@@ -31,7 +31,7 @@ http.createServer(async(request,response)=>{
         if(p.method==='eventDocuments')return json(response,200,workspace.data.documents.filter(d=>d.scope==='event'&&d.target_id===p.args[0]));
         if(p.method==='invite'&&p.args[0]?.member_id){const m=workspace.data.members.find(m=>m.id===p.args[0].member_id&&m.membership_status==='active'&&!m.archived_at&&!m.merged_into_member_id);if(!m)throw new HttpError(422,'Choose an active member before preparing an executive invitation.');}
         if(p.method==='eventMediaPreview'){await workspace.eventMediaPreview(p.args[0]);return json(response,200,fileUrl(p.args[0]));}
-        const result=p.method==='invite'?await workspace.act('save_account',p.args[0],p.args[1]):await workspace[p.method](...p.args);
+        const result=await workspace[p.method](...p.args);
         return json(response,200,result);
       }
       if(url.pathname==='/__ui/upload'){

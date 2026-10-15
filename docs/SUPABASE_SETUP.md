@@ -8,8 +8,8 @@ The Supabase plugin installed and verified the UM18 database in the approved ass
 - [Supabase project dashboard](https://supabase.com/dashboard/project/hpbzhaleqphfucnautpl).
 - API URL: `https://hpbzhaleqphfucnautpl.supabase.co`.
 - Region: `eu-west-1`; PostgreSQL `17.11.0.003`.
-- Installed: all eighteen prepared migrations plus `20261014171907_financial_history_access.sql`.
-- All nineteen remote ledger versions and names match the repository files. The plugin generated execution timestamps; after each application, its ledger version was reconciled to the original filename prefix without reapplying the schema.
+- Installed: 21 migrations, through `20261015053558_executive_membership_handover.sql`. See [Executive membership and handover](EXECUTIVE_MEMBERSHIP.md).
+- All 21 remote ledger versions and names match the repository files. The plugin generated execution timestamps; after each application, its ledger version was reconciled to the original filename prefix without reapplying the schema.
 - [Installed migration manifest](supabase-installed-migrations.json) records the filenames, versions and SHA-256 hashes of the submitted UTF-8 SQL text. Preserve line endings when comparing hashes; Git may normalize them on checkout. Never edit an already applied migration; create a new migration for future changes.
 
 An interrupted plugin connection initially prevented confirmation of migration six. After reconnection, the live ledger showed it had completed. Its version was reconciled before continuing with migration seven; it was not applied twice.
@@ -18,7 +18,7 @@ An interrupted plugin connection initially prevented confirmation of migration s
 
 Live privilege checks found that Supabase's default grants gave `anon` and `authenticated` extra privileges on `payment_metadata_history`, and `authenticated` extra privileges on `payment_status_history`. RLS blocks unauthorised row operations but does not protect TRUNCATE. This issue was absent from the earlier embedded fixture's default grants.
 
-The final migration revokes all browser/PUBLIC privileges on those tables, restores only authenticated SELECT under the existing finance-read policies, and removes automatic browser grants on future public tables created by the migration role (`postgres`). Existing server privileges and audited RPCs remain available. Tables created by other administrative roles still need explicit grant review and RLS. Welfare policies also cache `auth.uid()` per statement while keeping assignment and permission checks.
+The financial-history migration revokes all browser/PUBLIC privileges on those tables, restores only authenticated SELECT under the existing finance-read policies, and removes automatic browser grants on future public tables created by the migration role (`postgres`). Existing server privileges and audited RPCs remain available. Tables created by other administrative roles still need explicit grant review and RLS. Welfare policies also cache `auth.uid()` per statement while keeping assignment and permission checks.
 
 Five regression checks reproduce the hosted grants, confirm the correction denies direct mutations/TRUNCATE, preserve audited writes and authorized finance reads, deny read-only/anonymous history access, and verify future application tables require deliberate browser grants.
 
@@ -26,7 +26,7 @@ Five regression checks reproduce the hosted grants, confirm the correction denie
 
 | Check | Result |
 |---|---|
-| Migration history | Nineteen exact filename versions and names |
+| Migration history | 21 exact filename versions and names |
 | Public application tables | 37, all with RLS enabled |
 | Browser direct table writes | No INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES or TRIGGER privileges for anon/authenticated |
 | Anonymous direct SELECT | Branding only |
@@ -42,7 +42,7 @@ Five regression checks reproduce the hosted grants, confirm the correction denie
 
 The access assertions ran with actual Postgres `anon` and `authenticated` roles inside rolled-back transactions. They did not create accounts or sample production records. They are direct SQL checks, not real signed-in sessions through PostgREST.
 
-The latest local suite on 15 October passed **328 tests**, with zero failures/skips. JavaScript syntax checks passed for **51 modules**. Production and interface-preview build checks also passed.
+The latest local suite on 15 October passed **341 tests**, with zero failures/skips. JavaScript syntax checks passed for **52 modules**. Production and interface-preview build checks also passed.
 
 ## Advisor results and interpretation
 

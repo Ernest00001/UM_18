@@ -121,6 +121,12 @@
       "version": "20261015051235",
       "name": "audit_workspace_repairs",
       "sha256": "b12631aa06ca01d8e74a83978a0250c2b6270a461d890cc4864ba6298127aecb"
+    },
+    {
+      "file": "20261015053558_executive_membership_handover.sql",
+      "version": "20261015053558",
+      "name": "executive_membership_handover",
+      "sha256": "873965e1853de60889add999167518c7113e4d16975f6bfaff62abf28ae70696"
     }
   ]
 }

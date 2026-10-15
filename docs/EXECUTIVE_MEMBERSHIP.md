@@ -1,0 +1,17 @@
+# Executive membership and handover
+
+Verified 15 October 2026. Migration `20261015053558_executive_membership_handover.sql` is installed on `hpbzhaleqphfucnautpl` as migration 21.
+
+Every confirmed executive has a permanent membership link. Accepting a new invitation matches a unique, active, unarchived member by email or creates a name/email member record. A reviewed member selection takes precedence. Ambiguous email matches require an administrator to select the correct record; names alone never merge people. Phone and location remain NULL until supplied, with a “Details to complete” indicator. Public registration and normal member correction still require those fields.
+
+The existing confirmed President was backfilled as `SET2018-001`, using the existing account display name `UM18 President`. Phone and location are awaiting completion. No Auth credentials or executive permissions changed during backfill.
+
+The President can remove or restore another executive through a reasoned, audited action. Membership, permanent identifiers, receipts, expenses and attribution are retained. Removal invalidates previous tokens, including after restoration; a fresh sign-in is required. Restoration requires a vacant office and preserves existing effective dates and permission limits. President/system administrator changes retain the separate controlled handover protections.
+
+“Replace executive” opens a new invitation with the outgoing offices and their suggested access. It does not copy the outgoing person's name, email, member identity or custom privileges. The outgoing executive keeps access until the replacement accepts, confirms the invited email, and verifies MFA. Handover then deactivates the predecessor and activates the successor in one locked transaction. Changed incumbents, conflicting offices, revoked inviter authority and competing replacements remain blocked. Pending invitations cannot read private workspace data. A review screen explains conflicts and offers retry/sign-out. Advanced account management can correct a reviewed membership link.
+
+Members → “Print full membership” loads all server pages, independently of screen filters, includes current and former executives, and excludes merged duplicate sources. Existing CSV exports retain their selected scope. CSV and membership reports include current executive offices; unprovided details print blank. Exports require directory export permission and record an audit event.
+
+Validation: all **341 tests passed**, **52 JavaScript modules** passed syntax checks, and production/interface-preview builds passed. New checks cover President backfill, email matching, incomplete details, accepted email, AAL1 denial, MFA activation, replacement races, revoked approval, protected accounts, removal/restoration, token cutoff, retry receipts, complete print pagination, office columns, pending review, and UI controls. The live database has one real member, its linked President account, no pending invitations, RLS on every application table, and no browser usage privilege on the private helper schema. The security advisor reports the deliberately guarded signed-in RPCs, intentional public event RPC, deny-all internal tables and pre-existing leaked-password protection warning (paid plan feature); no new unindexed foreign keys were reported.
+
+No real invitation emails or real executive replacements were sent/performed for testing. The first live invitation/acceptance/MFA/handover pilot remains an association-controlled check.
