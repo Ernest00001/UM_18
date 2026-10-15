@@ -1,0 +1,15 @@
+# Resending executive invitations
+
+An administrator with current **accounts.write** permission can use **Resend invitation** on an active pending executive in **Executive management & handover**. The dialog shows the existing recipient and requests an audit reason. Accepted or revoked accounts have no resend control.
+
+The server uses the existing executive and Supabase Auth identity. It checks approved active membership, matching personal emails, current invitation approval, effective directory access and unoccupied offices. A replacement also retains the original outgoing-office checks. Resending never changes membership, assignments, grants/denials or the outgoing executive's access. The normal acceptance/password workflow still controls activation.
+
+Unconfirmed recipients receive a fresh Supabase invitation. Someone who confirmed their email but stopped before completing password setup receives a Supabase recovery/setup email instead; the existing recovery callback lets them finish setting a password. Repeated admin invitations to a confirmed Supabase identity are rejected by Auth, so the server deliberately selects the appropriate email flow. No action links or credentials are returned to the administrator.
+
+Each target has a 60-second cooldown after its initial invitation or any resend attempt, a maximum of five resend attempts in a rolling hour, and a two-minute reservation while an attempt is processing. The private request ledger serialises concurrent sends and binds each request to an administrator, target, reason and retry key. A completed retry returns the previous result without another email. Failed or uncertain attempts require a new explicit attempt after the cooldown; the same request key cannot silently send again. If a process stops before delivery is recorded, the result remains unconfirmed, rather than claiming success. Both request and completion are audited, including the initiating administrator.
+
+Delivery uses Supabase's configured SMTP service. The organisation configured Gmail SMTP on 15 October 2026 and persisted settings were verified in the dashboard. Successful SMTP configuration alone does not prove inbox delivery. Provider errors remain visible; a successful send response means the provider accepted the request, not that the recipient opened the email.
+
+Local preview resends simulate the action without email. Database tests use isolated fake identities, while endpoint tests mock provider responses for invitation, recovery, rejection, interruption, retry, cooldown and revoked authority. Real recipient inbox delivery is a separate acceptance check and requires an authorised test recipient. No real email was sent during feature testing.
+
+The Supabase service key stays on the server. Reservation RPCs require a live password session and account-management permission. Preparing/finishing a provider request is service-only; the resend table and helper stay in the private schema with RLS and no browser grants. An expired or changed original approval is rejected for review; resending does not renew that approval or extend an executive's role expiry.

@@ -139,6 +139,12 @@
       "version": "20261015105512",
       "name": "member_profiles_and_presidential_handover",
       "sha256": "cb7f4d9c13c0bb534b155c2754ef7f95f4f310a4f3deedeb76f074d20d117fcd"
+    },
+    {
+      "file": "20261015113319_resend_executive_invitations.sql",
+      "version": "20261015113319",
+      "name": "resend_executive_invitations",
+      "sha256": "e9b733bef638b79290cd89d40b63426737849bdab971e7d22a2332d66919d635"
     }
   ]
 }

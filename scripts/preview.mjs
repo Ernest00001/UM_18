@@ -10,7 +10,7 @@ import {ReviewService} from '../.local/ui-preview/assets/js/review-service.js';
 const root=resolve('.local/ui-preview'),port=Number(process.env.PORT||3180),origin='http://127.0.0.1:'+port;
 const workspace=new ReviewService();workspace.user=workspace.data.accounts[0];
 const files=new Map();
-const methods=new Set(['myProfile','saveMyProfile','presidentialCandidates','memberContributions','session','branding','load','act','history','searchMembers','searchPayments','accountabilityOverview','officeReports','monthlySchedule','collectionSummaries','welfareAssignments','memberRecord','memberAssessments','documentTargets','eventDocuments','publicEvents','eventMedia','eventMediaPreview','register','invite']);
+const methods=new Set(['resendInvitation','myProfile','saveMyProfile','presidentialCandidates','memberContributions','session','branding','load','act','history','searchMembers','searchPayments','accountabilityOverview','officeReports','monthlySchedule','collectionSummaries','welfareAssignments','memberRecord','memberAssessments','documentTargets','eventDocuments','publicEvents','eventMedia','eventMediaPreview','register','invite']);
 const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.svg':'image/svg+xml','.ttf':'font/ttf','.txt':'text/plain'};
 const json=(response,status,value)=>{response.writeHead(status,{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});response.end(JSON.stringify(value));};
 const fileUrl=(id,isPublic=false)=>origin+'/__ui/file?id='+encodeURIComponent(id)+(isPublic?'&public=1':'');

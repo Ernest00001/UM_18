@@ -41,5 +41,6 @@ export class ProductionService {
  async upload(file,scope,target,meta={}){const b=new Uint8Array(await file.arrayBuffer());let raw='';for(let i=0;i<b.length;i+=8192)raw+=String.fromCharCode(...b.subarray(i,i+8192));return this.authorized('/api/documents',{op:'upload',name:file.name,mime:file.type,base64:btoa(raw),scope,target_id:target,...meta});}
  async download(id,preview=false){const r=await this.authorized('/api/documents',{op:preview?'preview':'download',id});return r.url;}
  async invite(payload){return this.authorized('/api/accounts',payload);}
+ async resendInvitation(payload){return this.authorized('/api/accounts',{...payload,op:'resend_invitation'});}
  async resetMfa(payload){return this.authorized('/api/accounts',{...payload,op:'reset_mfa'});}
 }
