@@ -27,9 +27,9 @@ const requestKeys=new WeakMap();
 export async function action(db,name,payload,key=crypto.randomUUID()){
  let keys=requestKeys.get(db);if(!keys){keys=new Map();requestKeys.set(db,keys);}
  let p={...payload};
- if(['allocate_payment','adjust_payment','transition_payment','correct_payment'].includes(name)&&p.expected_revision===undefined){
+ if((['allocate_payment','adjust_payment','transition_payment','correct_payment'].includes(name)||['save_expense','transition_expense'].includes(name)&&p.id)&&p.expected_revision===undefined){
   if(keys.has(key))p.expected_revision=keys.get(key);
-  else {p.expected_revision=(await db.query('select revision from public.payments where id=$1',[p.id])).rows[0]?.revision;keys.set(key,p.expected_revision);}
+  else {p.expected_revision=(await db.query('select revision from public.'+(['save_expense','transition_expense'].includes(name)?'expenses':'payments')+' where id=$1',[p.id])).rows[0]?.revision;keys.set(key,p.expected_revision);}
  }
  return (await db.query('select public.execute_action($1,$2::jsonb,$3) as result',[name,JSON.stringify(p),key])).rows[0].result;
 }

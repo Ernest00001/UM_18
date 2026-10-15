@@ -54,7 +54,7 @@ function manageAccount(ctx,a={}){
   p.expires_at=null;p.member_id=p.member_id||null;if(!a.id&&!p.member_id)throw new Error('Choose an approved member to invite.');p.active=a.id?form.elements.active.checked:true;
   if(a.id)await ctx.act('save_account',{...p,id:a.id});else{await ctx.svc.invite({...p,op:'invite'});toast(ctx.preview?'Invitation prepared in the UI preview; no email was sent.':ctx.review?'Fictional executive added.':'Invitation sent; executive must accept it and set a password.');}await ctx.refresh();
  }});
- el.querySelector('[name=member_id]').addEventListener('change',event=>{if(a.id)return;const m=eligibleMembers.find(m=>m.id===event.target.value);const form=el.querySelector('form');form.elements.display_name.value=m?.full_name||'';form.elements.email.value=m?.email||'';});
+ el.querySelector('[name=member_id]').addEventListener('change',event=>{if(a.id)return;const m=ctx.data.members.find(m=>m.id===event.target.value);const form=el.querySelector('form');form.elements.display_name.value=m?.full_name||'';form.elements.email.value=m?.email||'';});
  el.querySelector('#apply-suggested-access').onclick=()=>{
   const form=el.querySelector('form'),codes=new FormData(form).getAll('office_codes'),feedback=el.querySelector('#suggested-access-feedback');
   if(!codes.length){feedback.textContent='Choose at least one office title before applying suggested access.';return;}

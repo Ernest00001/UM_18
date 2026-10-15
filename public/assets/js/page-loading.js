@@ -2,7 +2,7 @@
 (()=>{
  const loading=document.querySelector('[data-app-loader]');
  if(!loading)return;
- loading.minimumDisplayReady=new Promise(resolve=>setTimeout(resolve,2000));
+ loading.minimumDisplayReady=new Promise(resolve=>setTimeout(resolve,1000));
  const showFailure=()=>{
   if(!loading.isConnected)return;
   loading.classList.add('failed');loading.setAttribute('aria-busy','false');

@@ -145,6 +145,12 @@
       "version": "20261015113319",
       "name": "resend_executive_invitations",
       "sha256": "e9b733bef638b79290cd89d40b63426737849bdab971e7d22a2332d66919d635"
+    },
+    {
+      "file": "20261015122243_audit_production_repairs.sql",
+      "version": "20261015122243",
+      "name": "audit_production_repairs",
+      "sha256": "0d7e158c9076654903c4d6b3874c14337ff181064fd09e937d684b4ef3371f40"
     }
   ]
 }

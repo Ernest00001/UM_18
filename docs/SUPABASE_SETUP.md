@@ -1,6 +1,6 @@
 # Supabase database setup — 14 October 2026
 
-The Supabase plugin installed and verified the UM18 database in the approved association project. The public website is deployed at https://theunmatched.vercel.app. The localhost interface preview remains separate. Executive sign-in uses email and password without MFA. Invitation-email configuration and live pilot acceptance are pending. See [Password sign-in](PASSWORD_LOGIN.md).
+The Supabase plugin installed and verified the UM18 database in the approved association project. The public website is deployed at https://theunmatched.vercel.app. The localhost interface preview remains separate. Executive sign-in uses email and password without MFA. Gmail SMTP is configured; real inbox delivery and live pilot acceptance remain pending. See [Password sign-in](PASSWORD_LOGIN.md).
 
 ## Project and migration ledger
 
@@ -66,7 +66,7 @@ The account has **zero verified MFA factors**. The production executive login is
 
 ## Remaining setup before operational use
 
-1. Complete Auth acceptance: public signup/anonymous sign-in are disabled and the production origin/login callback are saved. Enroll President TOTP and verify invitation/recovery email delivery, password policy and session limits.
+1. Complete Auth acceptance: public signup/anonymous sign-in are disabled and the production origin/login callback are saved. Verify President password sign-in, invitation/recovery inbox delivery, password policy and session limits.
 2. Configure Vercel server variables securely. No private key was read or placed in this chat, source or manifest. Keep production and staging separated.
 3. The first President administrator is already created. Configure the working login address, sign in with that account using email and password. The President can then invite other executives from the dashboard. Do not rerun owner bootstrap on this project.
 4. Test real public submissions, leadership review, executive invitations/acceptance, office permissions and revocation through deployed UI and API calls.

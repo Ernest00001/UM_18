@@ -2,7 +2,7 @@
 
 ## Current stage: public website deployed; executive setup pending
 
-All twenty-four migrations are installed in the association's Supabase project `hpbzhaleqphfucnautpl`, verified through the Supabase plugin, including personal profiles and protected presidential handover on 15 October 2026. See [PERSONAL_PROFILES_AND_HANDOVER.md](PERSONAL_PROFILES_AND_HANDOVER.md) and the installed-migration manifest for current details. The public website is deployed at [theunmatched.vercel.app](https://theunmatched.vercel.app), and the first President administrator is bootstrapped. Executive sign-in uses email and password without mandatory MFA or email codes. Gmail SMTP is configured; real inbox delivery, live workflow acceptance and backup/restore checks remain pending. The local interface preview remains separate from this database.
+Twenty-five migrations are installed in the association's Supabase project `hpbzhaleqphfucnautpl`, verified through the Supabase plugin, including personal profiles and protected presidential handover on 15 October 2026. See [PERSONAL_PROFILES_AND_HANDOVER.md](PERSONAL_PROFILES_AND_HANDOVER.md) and the installed-migration manifest for current details. The public website is deployed at [theunmatched.vercel.app](https://theunmatched.vercel.app), and the first President administrator is bootstrapped. Executive sign-in uses email and password without mandatory MFA or email codes. Gmail SMTP is configured; real inbox delivery, live workflow acceptance and backup/restore checks remain pending. The local interface preview remains separate from this database. The audit production-repairs migration is installed and verified; see [AUDIT_PRODUCTION_REPAIRS.md](AUDIT_PRODUCTION_REPAIRS.md) before publishing the matching frontend.
 
 For local interface review, use `npm run build:preview` and `npm run preview`. This builds `.local/ui-preview` and serves `http://127.0.0.1:3180`, with executive screens at `/admin/overview/`. It starts with empty operational records and the generic **Workspace preview** identity. Local server-memory records and uploads last until the preview server restarts; they are not Supabase data. Public navigation contains association content rather than an executive entry link. `npm run build` remains the production default for `dist`, excluding preview/review services and fixture records.
 
@@ -33,12 +33,12 @@ Migration `20261015051235_audit_workspace_repairs.sql` adds event-list attendanc
 ## Auth and email settings
 
 1. Public signup and anonymous sign-ins are disabled in this project. Keep both disabled in Supabase Auth. There is no member account or executive signup page.
-2. Enable TOTP enrollment/verification. PostgreSQL requires AAL2 for private records and administrative actions. A live AAL1 executive receives only setup context.
+2. Keep executive sign-in as email and password. Database access requires a valid password-authenticated session and current executive permissions; AAL1 password sessions are supported. Invitation/recovery tokens alone do not grant operational access. Do not add a mandatory authenticator or email-code step.
 3. Auth Site URL is now `https://theunmatched.vercel.app` and its `/admin/login/` callback is allowed. For a fresh project, set Auth Site URL to the exact production origin. Allow only approved `/admin/login/` redirect URLs for production, staging and local development.
 4. Configure approved SMTP and default supported invitation/recovery confirmation links. This static application uses the SDK’s **implicit browser flow**: Supabase verifies the emailed link and returns its authenticated fragment to `/admin/login/`. It does not depend on a PKCE verifier being present in the invitation recipient’s browser. Do not replace templates with a custom token-hash route without implementing and testing that route.
-5. Enforce a strong password policy (the UI requires at least 12 characters) and association-approved session limits. Test invitation acceptance in a fresh browser and recovery for an existing MFA user.
+5. Enforce a strong password policy (the UI requires at least 12 characters) and association-approved session limits. Test invitation acceptance in a fresh browser and password recovery through the invited email.
 
-Only a successfully accepted `invite`/`recovery` callback bound to the current session enables password setup. Adding `?recover=1` cannot enable it. An invalid link cannot reuse some other existing session to change its password. Verified MFA factors are preserved; abandoned unverified enrollment factors are removed when restarting setup.
+Only a successfully accepted `invite`/`recovery` callback bound to the current session enables password setup. Adding `?recover=1` cannot enable it. An invalid link cannot reuse some other existing session to change its password. A valid callback enables password setup, followed by a fresh password sign-in before workspace access.
 
 ## Server and browser configuration
 
@@ -59,7 +59,7 @@ Static JS does not automatically inherit Vercel variables. `runtime-mode.js` is 
 
 ## First owner and later invitations
 
-The current association project already has its first **UM18 President** administrator. Do not repeat its bootstrap. The steps below apply to a fresh project; this project's next steps are production sign-in configuration and President MFA enrollment.
+The current association project already has its first **UM18 President** administrator. Do not repeat its bootstrap. The steps below apply to a fresh project; this project's next steps are password sign-in acceptance and invitation inbox delivery checks.
 
 On a trusted machine, securely load server variables and run:
 
@@ -67,17 +67,17 @@ On a trusted machine, securely load server variables and run:
 node --env-file=.env scripts/bootstrap-owner.mjs
 ```
 
-Enter the approved President’s individual email and display name. The first account receives the President office and system administrator role. The President then invites the Vice President and other executives through Executive accounts; they do not require manual Supabase account creation. The script checks server-only `bootstrap_status` before sending a first invitation, then calls locked `bootstrap_owner`. Accept the email, choose a password, enroll TOTP and verify. No shared password or hardcoded credential exists. The database protects the final active permanent owner.
+Enter the approved President’s individual email and display name. The first account receives the President office and system administrator role. The President then invites the Vice President and other executives through Executive accounts; they do not require manual Supabase account creation. The script checks server-only `bootstrap_status` before sending a first invitation, then calls locked `bootstrap_owner`. Accept the email, choose a password and sign in. No shared password or hardcoded credential exists. The database protects the final active permanent owner.
 
 If delivery or bootstrap was interrupted, inspect Supabase Auth before repeating it. A named infrastructure custodian may call `bootstrap_owner(existing_auth_uuid, approved_name, approved_email)` through the secret-key service role only after verifying no owner has already been provisioned. Preserve the audit result and keep secrets out of SQL files/chat.
 
-Invite later executives in **Executive accounts**. The signed-in owner needs current AAL2 `accounts.write`; the server verifies the token with `getUser` and rechecks authority before each privileged action. Invitations use a persistent operation key/lease. Completed retries return the original identity; a known identity is not re-invited. If access provisioning fails, the same unchanged operation can resume after its lease ends (two minutes). If delivery was uncertain before identity recording, the request fails for manual Auth review rather than sending blindly again.
+Invite later executives in **Executive accounts**. The signed-in owner needs a current password-authenticated session and `accounts.write`; the server verifies the token with `getUser` and rechecks authority before each privileged action. Invitations use a persistent operation key/lease. Completed retries return the original identity; a known identity is not re-invited. If access provisioning fails, the same unchanged operation can resume after its lease ends (two minutes). If delivery was uncertain before identity recording, the request fails for manual Auth review rather than sending blindly again.
 
-An account administrator can start from an approved active member profile with **Invite to executive workspace**. `/admin/accounts/?invite_member=…` prefills their name, email and linked member record; offices and access still require a deliberate choice. The invitation path validates that the linked record is active, unarchived and not a merged source before provisioning. The recipient accepts the Supabase invitation, sets a password, enrolls TOTP and then uses their permitted office workspace. Invite each officeholder and assistant individually. Alumni registration remains independent of executive Auth accounts.
+An account administrator can start from an approved active member profile with **Invite to executive workspace**. `/admin/accounts/?invite_member=…` prefills their name, email and linked member record; offices and access still require a deliberate choice. The invitation path validates that the linked record is active, unarchived and not a merged source before provisioning. The recipient accepts the Supabase invitation, sets a password, signs in and then uses their permitted office workspace. Invite each officeholder and assistant individually. Alumni registration remains independent of executive Auth accounts.
 
 An infrastructure custodian can review `invitation_operations`, verify the emailed Auth UUID and actor-approved payload, bind an uncertain pending operation to that identity through the trusted restore/admin connection, and retry provisioning with the original lease/actor and exact approved fields. Do not give a new identity access merely because it exists in Auth. `provision_invited_account_v2` is a service-only manual repair operation; it still checks the inviting actor’s current authority and audits roles, denials and schedules. Record any repair separately. Never use a shared password to resolve delivery failures.
 
-Role start/expiry dates, additional grants and explicit denials are separate. Denials override role grants. Use an immediately effective role for initial setup; scheduled future roles provide no operational access before their start. Confirm the successor can enroll MFA and administer accounts before handover.
+Role start/expiry dates, additional grants and explicit denials are separate. Denials override role grants. Use an immediately effective role for initial setup; scheduled future roles provide no operational access before their start. For presidential succession, use the protected handover panel after the successor accepts their invitation and signs in with their own personal email and password.
 
 Set the executive's association office or offices in **Executive accounts** separately from their access roles. The supported offices are President, Vice President, Secretary, Assistant Secretary, Treasurer, Assistant Treasurer, PRO, Financial Secretary, Assistant Financial Secretary, Community / Event Manager, and Auditor General. Office selection records responsibility and does not grant permissions. **Apply suggested access** fills the proposed duties for review; saving the approved roles, grants, denials and schedules provisions actual access. President and Vice President titles do not automatically create owners. Keep owner/system administration assigned explicitly to verified custodians, and retain at least one active permanent owner.
 
@@ -85,11 +85,11 @@ All offices share the executive workspace. Leadership suggestions use read-only 
 
 Assign officeholder and assistant titles to separate invited accounts. Overview groups President/Vice President, Secretary/Assistant Secretary, Treasurer/Assistant Treasurer and Financial Secretary/Assistant Financial Secretary into their shared office workspaces, alongside the other offices. Each team uses the same underlying association records and sees active colleagues; workspace links still follow each individual's current permissions. Verify both accounts in the pilot, including a deliberate denial or expiry on one assistant. Confirm the denied page stays unavailable to that assistant and that writes from each account retain the correct actor in audit history. Never share an office password or copy access implicitly from its team grouping.
 
-## Audited MFA recovery
+## Password recovery and account access
 
-An independently authenticated AAL2 owner with **accounts.mfa_reset** may reset another executive’s factors after identity verification and a recorded reason. Self-reset is forbidden. The server persists a recovery operation, restricts the target account, advances its token-validity cutoff, uses supported Auth admin factor APIs, and completes through a service-only audited RPC. Old AAL2 claims remain rejected after completion. The target signs in again and enrolls a new factor. Failed/uncertain recovery leaves the target restricted for investigation. Owners must coordinate recovery of another owner so a working owner remains.
+Current application recovery is password recovery by email. The executive enters their own sign-in email under “Forgot password?”, opens the recovery link, sets a password and signs in freshly. Account revocation and appointment restrictions still apply. Legacy authenticator-reset endpoints remain compatibility code and are not the normal login or recovery path. Infrastructure account recovery is handled separately through the relevant provider and association custodians.
 
-If all authorised owners lose MFA, use the association’s named Supabase infrastructure custodians and provider recovery procedures. There is no public bypass. See the handover guide.
+If all authorised owners lose access, use the association’s named Supabase infrastructure custodians and provider recovery procedures. There is no public bypass. See the handover guide.
 
 ## Vercel settings
 
@@ -99,15 +99,15 @@ Use **Other** preset, **Node 24.x**, install from lockfile, build command **npm 
 
 Use **npm run build:preview** only for the separate localhost interface preview. Preview and review modes are rejected when `VERCEL_ENV=production`. Never publish the localhost preview or real records through test fixtures.
 
-For the actual Vercel deployment, use **npm run build** and the complete source project. This build removes fixture records and the review service; the executive sign-in and application use the configured Supabase Auth/database. Set the approved production origin before sending invitations and verify real invitation delivery, password setup and MFA enrollment with individual test executives. No project deployment or invitation delivery is established merely by a successful local build.
+For the actual Vercel deployment, use **npm run build** and the complete source project. This build removes fixture records and the review service; the executive sign-in and application use the configured Supabase Auth/database. Set the approved production origin before sending invitations and verify real invitation delivery, password setup and fresh password sign-in with individual test executives. No project deployment or invitation delivery is established merely by a successful local build.
 
 ## Verify the configured project before the pilot
 
 - Inspect `/api/config` and `/api/branding` for the exact safe fields, correct origins and absence of secrets/private data.
 - Reload `/`, `/register/`, confirmation/privacy/help and every executive area. Detail pages use query IDs; APIs must return JSON/errors, not an HTML fallback.
 - Submit without login, fail a field, retry a lost response with the same payload/key, and confirm one pending row and only a generic opaque public response.
-- Test anonymous/forged private requests and privileged registration fields directly. Test AAL1, expired roles, denials, inactive users, deleted sessions and revoked old tokens.
-- Accept two individual invitations in fresh browsers; test recovery, abandoned enrollment restart and separately authorised MFA reset.
+- Test anonymous/forged private requests and privileged registration fields directly. Test allowed AAL1 password sessions, denied invitation/recovery-only tokens, expired roles, denials, inactive users, deleted sessions and revoked old tokens.
+- Accept two individual invitations in fresh browsers; test password recovery, rejected-session account switching and revoked-account denial.
 - Record a verified transfer across two months and a special collection, leave credit, refund on a later date, correct metadata and replace a reversed receipt. Reconcile payment-date reports, dated cashbook, collection coverage and history.
 - Upload/version a logo and refresh another public tab. Test private document lists, direct URLs and wrong-assignment exports. Signed URLs expire after 60 seconds; an already issued URL remains usable until then.
 - Create a public upcoming event with a poster, then close it and select gallery photos. Confirm the homepage announcement/gallery changes, private notes/attendance remain absent from public feeds, and an unpublished or archived image no longer receives a new public URL.

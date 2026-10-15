@@ -11,11 +11,11 @@ test('a stalled application offers a retry without continuing its spinner indefi
  callback();const loader=document.querySelector('[data-app-loader]');assert.equal(loader.getAttribute('aria-busy'),'false');assert.ok(loader.classList.contains('failed'));assert.equal(loader.querySelector('[data-loading-actions]').hidden,false);loader.querySelector('button').onclick();assert.ok(reloaded);
 });
 
-test('the minimum display resolves at two seconds independently of the stalled-load retry',async()=>{
+test('the minimum display resolves at one second independently of the stalled-load retry',async()=>{
  const {document}=parseHTML(await readFile('public/index.html','utf8')),timers=new Map();
  class Observer{observe(){}disconnect(){}}
  const source=await readFile('public/assets/js/page-loading.js','utf8');new Function('document','setTimeout','clearTimeout','MutationObserver','location',source)(document,(fn,delay)=>{timers.set(delay,fn);return delay;},()=>{},Observer,{reload(){}});
- let ready=false;document.querySelector('[data-app-loader]').minimumDisplayReady.then(()=>ready=true);await Promise.resolve();assert.equal(ready,false);assert.ok(timers.has(2000));assert.ok(timers.has(20000));timers.get(2000)();await Promise.resolve();assert.equal(ready,true);assert.ok(!document.querySelector('[data-app-loader]').classList.contains('failed'));
+ let ready=false;document.querySelector('[data-app-loader]').minimumDisplayReady.then(()=>ready=true);await Promise.resolve();assert.equal(ready,false);assert.ok(timers.has(1000));assert.ok(timers.has(20000));timers.get(1000)();await Promise.resolve();assert.equal(ready,true);assert.ok(!document.querySelector('[data-app-loader]').classList.contains('failed'));
 });
 
 test('public and executive pages retain the loader until its minimum display completes',async t=>{
