@@ -34,7 +34,7 @@ test('confirmed executive membership and controlled handover preserve the comple
   const snapshot=(await db.query("select public.workspace_data('reports') d")).rows[0].d;assert.ok(snapshot.members.some(m=>m.id===firstMember&&m.executive_offices.includes('pro')));
  });
  await t.test('removal, restoration and retries preserve membership and invalidate old tokens',async()=>{
-  const key=crypto.randomUUID(),p={id:first.id,reason:'Executive temporarily relieved of office'};
+  await role(db,'authenticated',first.id);const oldClaims=(await db.query("select current_setting('request.jwt.claims') c")).rows[0].c;await role(db,'authenticated',OWNER);const key=crypto.randomUUID(),p={id:first.id,reason:'Executive temporarily relieved of office'};
   const removed=await action(db,'remove_executive',p,key);assert.equal(removed.active,false);assert.equal(removed.member_id,firstMember);assert.equal((await action(db,'remove_executive',p,key)).id,first.id);
   await role(db,'authenticated',first.id);await assert.rejects(db.query("select public.workspace_data('members')"),/Access denied/);
   await role(db,'authenticated',OWNER);await action(db,'restore_executive',{id:first.id,reason:'Executive reinstated following review'});

@@ -246,6 +246,13 @@
 }
 
 .password-field { position: relative; margin-bottom: 20px; }
+@media screen and (max-width:640px) {
+ .compact-member-list .mobile-record { padding:16px; gap:12px; }
+ .compact-member-list .mobile-record dl { margin:0; gap:8px; }
+ .compact-member-list .mobile-record dl:empty { display:none; }
+ .compact-member-list .mobile-record .person { margin-bottom:4px; }
+ .compact-member-list .mobile-record>.btn { margin-top:0; min-height:44px; }
+}
 .auth-box .password-field .field { margin-bottom: 0; }
 .password-field .field input { padding-right: 84px; }
 .password-toggle { position: absolute; right: 5px; bottom: 5px; min-width: 66px; min-height: 44px; border: 0; border-radius: 6px; background: transparent; color: var(--maroon); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }

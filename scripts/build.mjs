@@ -15,7 +15,7 @@ if(!preview)await rm(output+'/assets/js/preview-service.js',{force:true});
 if(!review&&!preview)await rm(output+'/assets/js/review-accountability.js',{force:true});
 const publicHtml=await readFile('public/index.html','utf8'),adminHtml=await readFile('public/admin/index.html','utf8');
 for(const route of ['register','confirmation','privacy','help','events','gallery']){await mkdir(output+'/'+route,{recursive:true});await writeFile(output+'/'+route+'/index.html',publicHtml);}await writeFile(output+'/404.html',publicHtml);
-for(const route of ['login','overview','office-reports','registrations','members','monthly','special','payments','expenses','events','welfare','contacts','documents','reports','branding','accounts','audit']){await mkdir(output+'/admin/'+route,{recursive:true});await writeFile(output+'/admin/'+route+'/index.html',adminHtml);}
+for(const route of ['login','profile','overview','office-reports','registrations','members','monthly','special','payments','expenses','events','welfare','contacts','documents','reports','branding','accounts','audit']){await mkdir(output+'/admin/'+route,{recursive:true});await writeFile(output+'/admin/'+route+'/index.html',adminHtml);}
 // Only admin detail paths need a fallback. Vercel rewrites below exclude /api entirely.
 await writeFile(output+'/robots.txt','User-agent: *\nDisallow: /admin/\n');
 console.log(`Built ${preview?'EMPTY UI PREVIEW':review?'FICTIONAL REVIEW':'PRODUCTION'} vanilla frontend in ${output}. No server secrets are embedded.`);

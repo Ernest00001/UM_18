@@ -133,6 +133,12 @@
       "version": "20261015060613",
       "name": "password_only_executive_login",
       "sha256": "a9b17841f1c5a806f03359527bbfb42f8b4954f690055c7f7471989af9f33ec6"
+    },
+    {
+      "file": "20261015105512_member_profiles_and_presidential_handover.sql",
+      "version": "20261015105512",
+      "name": "member_profiles_and_presidential_handover",
+      "sha256": "cb7f4d9c13c0bb534b155c2754ef7f95f4f310a4f3deedeb76f074d20d117fcd"
     }
   ]
 }

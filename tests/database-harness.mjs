@@ -17,7 +17,7 @@ export async function database({migrationsLimit,hostedTableGrants=false}={}){
  if(hostedTableGrants)await db.exec('alter default privileges in schema public grant all on tables to anon,authenticated');
  const migrations=(await readdir('supabase/migrations')).sort();
  for(const name of migrationsLimit===undefined?migrations:migrations.slice(0,migrationsLimit))await db.exec(await readFile('supabase/migrations/'+name,'utf8'));
- await db.query('insert into auth.users(id,email) values($1,$2),($3,$4),($5,$6),($7,$8)',[OWNER,'owner@example.invalid',READER,'reader@example.invalid',FINANCE,'finance@example.invalid',WELFARE,'welfare@example.invalid']);
+ await db.query('insert into auth.users(id,email) values($1,$2),($3,$4),($5,$6),($7,$8)',[OWNER,'owner@example.invalid',READER,'testreader@example.invalid',FINANCE,'testtreasurer@example.invalid',WELFARE,'testwelfare@example.invalid']);
  await role(db,'service_role',null);await db.query('select public.bootstrap_owner($1,$2,$3)',[OWNER,'Test Owner','owner@example.invalid']);
  for(const [id,name,r] of [[READER,'Test Reader','read_only'],[FINANCE,'Test Treasurer','treasurer'],[WELFARE,'Test Welfare','welfare']])await db.query('select public.provision_invited_account($1,$2,$3,$4,$5::jsonb,$6::jsonb,null,null,$7)',[OWNER,id,name,name.toLowerCase().replaceAll(' ','')+'@example.invalid',JSON.stringify([r]),'[]','Test invitation']);
  await role(db,'authenticated',OWNER);return db;

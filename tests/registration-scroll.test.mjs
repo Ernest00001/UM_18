@@ -49,9 +49,9 @@ test('a rejected submission keeps its values and leaves focus on the highlighted
     registration=mountRegistration(ctx.container,{brand:ctx.brand,review:true,getService:async()=>({register:async()=>{throw Object.assign(new Error('Check email'),{fields:{email:'Please review this email address.'}});}})});
     await registration.start();assert.ok(ctx.container.classList.contains('registration-open'));
     const form=document.querySelector('#registration'),field=name=>form.querySelector(`[name="${name}"]`),advance=()=>form.onsubmit({preventDefault(){}});
-    for(const [name,value] of Object.entries({full_name:'Fictional Member',phone:'08012345678',city:'Uyo',country:'Nigeria'}))field(name).value=value;
+    for(const [name,value] of Object.entries({full_name:'Fictional Member',phone:'08012345678',city:'Uyo',country:'Nigeria',email:'fictional@example.invalid',whatsapp:'08012345678'}))field(name).value=value;
     await advance();await advance();field('email').value='fictional@example.invalid';await advance();field('acknowledgement').checked=true;
-    await advance();assert.equal(registration.phase(),2);assert.equal(focused,field('email'));
+    await advance();assert.equal(registration.phase(),0);assert.equal(focused,field('email'));
     assert.equal(field('email').getAttribute('aria-invalid'),'true');assert.equal(field('full_name').value,'Fictional Member');assert.equal(field('phone').value,'08012345678');
     assert.equal(form.querySelector('#phase-next').disabled,false);
   }finally{registration?.destroy();window.HTMLElement.prototype.focus=originalFocus;cleanup();}

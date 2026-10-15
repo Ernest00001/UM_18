@@ -17,7 +17,7 @@ export function normalizePhone(value) {
 }
 export const normalizedName=s=>String(s||'').normalize('NFKC').toLocaleLowerCase().replace(/[^\p{L}\p{N}]+/gu,' ').trim();
 export const PUBLIC_FIELDS=['full_name','former_name','phone','whatsapp','email','city','region','country','gender','birthday_day','birthday_month','birth_year','address','socials','joined_year','qualification','qualification_other','course','institution','occupation','occupation_other','business_name','business_sector','business_description','skills','emergency_name','emergency_relationship','emergency_phone','emergency_permission','message','acknowledgement','website','bot_token'];
-export function validateRegistration(input,{strict=true}={}) {
+export function validateRegistration(input,{strict=true,requireContacts=false}={}) {
   const errors={}; const p={};
   if(!input||Array.isArray(input)||typeof input!=='object')return {valid:false,errors:{form:'A registration object is required.'},payload:{}};
   if(strict&&Object.keys(input).some(k=>!PUBLIC_FIELDS.includes(k))) errors.form='Unexpected fields are not allowed.';
@@ -25,6 +25,8 @@ export function validateRegistration(input,{strict=true}={}) {
   for(const [f,label] of [['full_name','Full name'],['city','City'],['country','Country']]) if(!p[f]||String(p[f]).length<2) errors[f]=`${label} is required.`;
   for(const f of PUBLIC_FIELDS){if(!['skills','socials','acknowledgement','emergency_permission','birthday_day','birthday_month','birth_year','joined_year'].includes(f)&&p[f]!=null&&typeof p[f]!=='string')errors[f]='Enter text for this field.';if(typeof p[f]==='string'&&p[f].length>(f==='bot_token'?2048:['address','message','business_description'].includes(f)?1500:180))errors[f]='This field is too long.';}
   try{p.phone_normalized=normalizePhone(p.phone);}catch(e){errors.phone=e.message;}
+  if(requireContacts&&!p.email)errors.email='Personal email is required.';
+  if(requireContacts&&!p.whatsapp)errors.whatsapp='WhatsApp number is required.';
   if(p.whatsapp) try{p.whatsapp_normalized=normalizePhone(p.whatsapp);}catch(e){errors.whatsapp=e.message;}
   if(p.emergency_phone) try{p.emergency_phone_normalized=normalizePhone(p.emergency_phone);}catch(e){errors.emergency_phone=e.message;}
   if(p.email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) errors.email='Enter a valid email address.';

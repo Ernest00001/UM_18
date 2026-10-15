@@ -2,6 +2,11 @@ import {operationKey} from './ui.js';
 
 // This adapter is shipped only in the separate localhost UI preview.
 export class PreviewService {
+ async myProfile(){return this.call('myProfile');}
+ async saveMyProfile(payload){return this.call('saveMyProfile',[payload,operationKey()]);}
+ async presidentialCandidates(){return this.call('presidentialCandidates');}
+ async memberContributions(id){return this.call('memberContributions',[id]);}
+ async changeSigninEmail(){throw new Error('This local preview does not send confirmation emails.');}
   async call(method,args=[]) {
     const response=await fetch('/__ui/call',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({method,args})});
     const result=await response.json();

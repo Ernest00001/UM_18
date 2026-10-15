@@ -65,7 +65,7 @@ test('invitation office selection requires deliberate suggestions and retains ap
     globalThis.setTimeout=()=>0;
     ctx.svc.invite=async payload=>{invitation=payload;};ctx.refresh=async()=>{refreshes++;};
     await renderAccounts(ctx);document.querySelector('#invite-executive').click();
-    const form=document.querySelector('dialog form');
+    const form=document.querySelector('dialog form');form.elements.member_id.value=ctx.data.members.find(m=>m.membership_status==='active').id;
     form.querySelector('[name=display_name]').value='Fictional PRO';
     form.querySelector('[name=email]').value='pro@example.invalid';
     form.querySelector('[name=reason]').value='Approved outreach responsibilities';

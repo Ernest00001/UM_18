@@ -81,7 +81,7 @@ test('executive offices remain validated metadata with independent contact acces
   await role(db,'authenticated',OWNER);
  });
  await t.test('office-aware provisioning is service-only, transactional and retry-safe',async()=>{
-  const id=crypto.randomUUID(),key=crypto.randomUUID(),payload={op:'invite',email:'office@example.invalid',display_name:'Invited President',roles:['read_only'],office_codes:['president'],reason:'Approved elected office with directory-only access'};
+  const id=crypto.randomUUID(),key=crypto.randomUUID(),payload={op:'invite',email:'office@example.invalid',display_name:'Invited Public Relations Officer',roles:['read_only'],office_codes:['pro'],reason:'Approved elected office with directory-only access'};
   await db.exec('reset role');await db.query('insert into auth.users(id,email) values($1,$2)',[id,payload.email]);await role(db,'authenticated',OWNER);
   const op=(await db.query('select public.begin_invitation($1,$2::jsonb) d',[key,JSON.stringify(payload)])).rows[0].d;
   await db.query('select public.mark_invitation_identity($1,$2,$3)',[op.id,op.lease_id,id]);
@@ -98,7 +98,7 @@ test('executive offices remain validated metadata with independent contact acces
   assert.deepEqual((await db.query('select public.current_context() c')).rows[0].c.office_codes,['vice_president']);assert.equal(await allowed(db,'accounts.write'),false);assert.equal(await allowed(db,'finance.write'),false);
   await role(db,'authenticated',OWNER);
   const retry=(await db.query('select public.begin_invitation($1,$2::jsonb) d',[key,JSON.stringify(payload)])).rows[0].d;assert.equal(retry.completed,true);assert.equal(retry.user_id,id);
-  const audit=(await db.query("select changes from public.audit_events where target_id=$1 and action='executive.offices_assigned'",[id])).rows;assert.equal(audit.length,1);assert.deepEqual(audit[0].changes.before,[]);assert.deepEqual(audit[0].changes.after,['president']);
+  const audit=(await db.query("select changes from public.audit_events where target_id=$1 and action='executive.offices_assigned'",[id])).rows;assert.equal(audit.length,1);assert.deepEqual(audit[0].changes.before,[]);assert.deepEqual(audit[0].changes.after,['pro']);
  });
  await t.test('anonymous and AAL1 sessions gain no office or contact authority',async()=>{
   await role(db,'authenticated',READER,'aal1');assert.equal(await allowed(db,'contacts.read'),false);await assert.rejects(db.query("select public.workspace_data('contacts',null)"));

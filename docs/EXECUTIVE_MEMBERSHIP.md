@@ -1,5 +1,7 @@
 # Executive membership and handover
 
+Current update: migration 23 requires approved member selection for new dashboard invitations and adds personal profiles plus a dedicated presidential transfer. See [PERSONAL_PROFILES_AND_HANDOVER.md](PERSONAL_PROFILES_AND_HANDOVER.md). The original migration-21 behavior below is retained for legacy records and retries.
+
 Verified 15 October 2026. Migration `20261015053558_executive_membership_handover.sql` is installed on `hpbzhaleqphfucnautpl` as migration 21.
 
 Every confirmed executive has a permanent membership link. Accepting a new invitation matches a unique, active, unarchived member by email or creates a name/email member record. A reviewed member selection takes precedence. Ambiguous email matches require an administrator to select the correct record; names alone never merge people. Phone and location remain NULL until supplied, with a “Details to complete” indicator. Public registration and normal member correction still require those fields.

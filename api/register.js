@@ -9,8 +9,8 @@ export function registrationHandler(overrides={}) {
  // Vercel overwrites its trusted forwarded IP header. Do not trust arbitrary proxy chains.
  const ip=String(req.headers['x-vercel-forwarded-for']||req.socket?.remoteAddress||'unknown').split(',')[0].trim();const hash=createHmac('sha256',e.rateSalt).update(ip).digest('hex');if(!await deps.rpc(client,'consume_registration_rate',{p_hash:hash}))throw new HttpError(429,'Too many submissions. Please try again later.');
  if(payload?.website){json(res,200,{reference:randomUUID(),message:'Submission received for executive review'});return;}
- const valid=deps.validateRegistration(payload);if(!valid.valid)throw new HttpError(422,'Please check the highlighted details.',valid.errors);
+ const valid=deps.validateRegistration(payload,{requireContacts:true});if(!valid.valid)throw new HttpError(422,'Please check the highlighted details.',valid.errors);
  // New requests stay pending; leadership approves them through the executive workspace.
- const result=await deps.rpc(client,'submit_registration',{p_payload:valid.payload,p_key:key});json(res,200,result);});
+ const result=await deps.rpc(client,'submit_member_application',{p_payload:valid.payload,p_key:key});json(res,200,result);});
 }
 export default registrationHandler();
